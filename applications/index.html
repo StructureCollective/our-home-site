@@ -3,12 +3,27 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Apply for a job with Our Home. Complete our online employment application to start the hiring process.">
+  <meta name="description" content="Apply for a job with Our Home, a children's group home. Complete our online employment application to start the hiring process.">
   <meta name="theme-color" content="#0b3550">
   <title>Careers — Apply — Our Home</title>
   <link rel="canonical" href="https://ourhome.org/applications/">
   <link rel="icon" type="image/png" sizes="32x32" href="../assets/images/favicon-32.png">
   <link rel="apple-touch-icon" href="../assets/images/favicon-192.png">
+
+  <!-- Link preview / social share -->
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Our Home">
+  <meta property="og:url" content="https://ourhome.org/applications/">
+  <meta property="og:title" content="Apply to Join Our Team — Our Home">
+  <meta property="og:description" content="Apply for a job with Our Home, a children's group home. Complete our online employment application to start the hiring process.">
+  <meta property="og:image" content="https://ourhome.org/assets/images/og-image.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="Our Home — We're Hiring. Join a team that gives children a safe place to call home.">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Apply to Join Our Team — Our Home">
+  <meta name="twitter:description" content="Apply for a job with Our Home, a children's group home. Complete our online employment application to start the hiring process.">
+  <meta name="twitter:image" content="https://ourhome.org/assets/images/og-image.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -24,7 +39,7 @@
         <img src="../assets/images/our-home-logo-nav.png" alt="Our Home logo">
         <span class="brand-text">
           <span class="full-name">Our Home</span>
-          <span class="sub">Group Home Association</span>
+          <span class="sub">Children's Group Home Association</span>
         </span>
       </a>
       <nav class="main-nav" aria-label="Primary">
@@ -113,9 +128,10 @@
                     <label for="app-position">Position Applying For</label>
                     <select id="app-position" name="position" required>
                       <option value="" selected disabled>Select a position</option>
-                      <option value="direct-support">[Direct Support Professional]</option>
+                      <option value="youth-care-worker">[Youth Care Worker / Residential Counselor]</option>
                       <option value="house-manager">[House Manager]</option>
-                      <option value="overnight-staff">[Overnight Staff]</option>
+                      <option value="overnight-counselor">[Overnight Youth Counselor]</option>
+                      <option value="case-manager">[Case Manager]</option>
                       <option value="admin-assistant">[Administrative Assistant]</option>
                       <option value="cook-kitchen">[Cook / Kitchen Staff]</option>
                       <option value="other">Other</option>
@@ -154,7 +170,7 @@
 
               <div class="form-section">
                 <h3><span class="step-num">2</span> Availability</h3>
-                <p class="section-note">Our residents need coverage around the clock, so please share your general availability.</p>
+                <p class="section-note">The children in our care need coverage around the clock, so please share your general availability.</p>
                 <div class="form-grid">
                   <div class="field full">
                     <label>Days Available</label>
@@ -198,7 +214,7 @@
                 <h3><span class="step-num">3</span> Employment Eligibility</h3>
                 <div class="form-grid">
                   <div class="field">
-                    <label for="app-age-eligible">Are you at least 18 years of age?</label>
+                    <label for="app-age-eligible">Are you at least 21 years of age? <span class="hint">(minimum age for this role)</span></label>
                     <select id="app-age-eligible" name="ageEligible" required>
                       <option value="" selected disabled>Select one</option>
                       <option value="yes">Yes</option>
@@ -224,8 +240,8 @@
                     </select>
                     <span class="field-error">Please select an option.</span>
                   </div>
-                  <div class="field">
-                    <label for="app-background-check">Consent to a background check if offered a position?</label>
+                  <div class="field full">
+                    <label for="app-background-check">Consent to a comprehensive background check if offered a position? <span class="hint">(including child abuse/neglect registry and sex offender registry checks, as required for anyone working directly with children)</span></label>
                     <select id="app-background-check" name="backgroundCheckConsent" required>
                       <option value="" selected disabled>Select one</option>
                       <option value="yes">Yes</option>
@@ -256,8 +272,12 @@
                     <input id="app-school-name" name="schoolName" type="text">
                   </div>
                   <div class="field full">
-                    <label for="app-certifications">Relevant Certifications <span class="hint">(optional — e.g. CPR/First Aid, CNA, CPI)</span></label>
-                    <input id="app-certifications" name="certifications" type="text" placeholder="e.g. CPR/First Aid, CNA">
+                    <label for="app-certifications">Relevant Certifications <span class="hint">(optional — e.g. CPR/First Aid, CPI, CNA, MAT)</span></label>
+                    <input id="app-certifications" name="certifications" type="text" placeholder="e.g. CPR/First Aid, CPI">
+                  </div>
+                  <div class="field full">
+                    <label for="app-child-experience">Experience Working with Children or Youth <span class="hint">(optional — paid or volunteer)</span></label>
+                    <textarea id="app-child-experience" name="childExperience" placeholder="e.g. camp counselor, childcare, foster care, tutoring, coaching..."></textarea>
                   </div>
                 </div>
               </div>
@@ -432,7 +452,8 @@
               <li><span class="mark">&#10003;</span> Contact info and mailing address</li>
               <li><span class="mark">&#10003;</span> Your work history — employer names, dates, and supervisor contacts</li>
               <li><span class="mark">&#10003;</span> Two professional references with phone numbers</li>
-              <li><span class="mark">&#10003;</span> Certifications you hold, if any (CPR, First Aid, CNA, etc.)</li>
+              <li><span class="mark">&#10003;</span> Certifications you hold, if any (CPR, First Aid, CPI, etc.)</li>
+              <li><span class="mark">&#10003;</span> Any experience working with children or youth</li>
               <li><span class="mark">&#10003;</span> Your availability and shift preferences</li>
             </ul>
             <div class="aside-contact">
@@ -455,7 +476,7 @@
             <img src="../assets/images/our-home-logo-nav.png" alt="Our Home">
             <span class="footer-brand-text">Our Home</span>
           </div>
-          <p class="footer-tagline">Safe, supportive group-home housing — powered by a team that cares.</p>
+          <p class="footer-tagline">A safe, supportive home for children and youth — powered by a team that cares.</p>
         </div>
         <div class="footer-col">
           <h4>Explore</h4>
