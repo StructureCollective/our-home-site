@@ -1,0 +1,315 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Apply for housing with Our Home. Complete our online application to start the process.">
+  <meta name="theme-color" content="#0b3550">
+  <title>Apply — Our Home</title>
+  <link rel="canonical" href="https://ourhome.org/applications/">
+  <link rel="icon" type="image/png" sizes="32x32" href="../assets/images/favicon-32.png">
+  <link rel="apple-touch-icon" href="../assets/images/favicon-192.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../styles.css">
+  <script src="../script.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to main content</a>
+
+  <header class="site-header">
+    <div class="container header-inner">
+      <a class="brand" href="../index.html">
+        <img src="../assets/images/our-home-logo-nav.png" alt="Our Home logo">
+        <span class="brand-text">
+          <span class="full-name">Our Home</span>
+          <span class="sub">Group Home Association</span>
+        </span>
+      </a>
+      <nav class="main-nav" aria-label="Primary">
+        <a href="../index.html">Home</a>
+        <a href="index.html" aria-current="page">Applications</a>
+        <a href="../about/index.html">About</a>
+        <a class="nav-cta" href="index.html">Apply Now</a>
+      </nav>
+      <button class="nav-toggle" aria-label="Toggle navigation menu" aria-expanded="false">
+        <span></span>
+      </button>
+    </div>
+  </header>
+
+  <div class="notice-banner">
+    <div class="container">
+      <span class="dot" aria-hidden="true"></span>
+      <span>Online application — preview. This form isn't connected to our processing system yet, so submissions aren't saved. To submit a real application today, please contact us directly at <a href="mailto:info@ourhome.org" style="color:#6b5518;text-decoration:underline;">[info@ourhome.org]</a> or <a href="tel:+10000000000" style="color:#6b5518;text-decoration:underline;">[(000) 000-0000]</a>.</span>
+    </div>
+  </div>
+
+  <main id="main">
+    <section class="page-hero">
+      <div class="container">
+        <div class="breadcrumb"><a href="../index.html">Home</a> / Applications</div>
+        <span class="eyebrow">Housing Application</span>
+        <h1>Apply for Housing</h1>
+        <p>Fill out the form below to start your application. It takes about 10 minutes — you don't need to finish everything perfectly, our team will follow up on anything we need clarified.</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container">
+        <div class="apply-layout">
+          <div>
+            <form id="applicationForm" class="form-card" novalidate>
+
+              <div class="form-section">
+                <h3><span class="step-num">1</span> Applicant Information</h3>
+                <div class="form-grid">
+                  <div class="field full">
+                    <label for="app-full-name">Full Name</label>
+                    <input id="app-full-name" name="fullName" type="text" autocomplete="name" required>
+                    <span class="field-error">Please enter your full name.</span>
+                  </div>
+                  <div class="field">
+                    <label for="app-dob">Date of Birth</label>
+                    <input id="app-dob" name="dob" type="date" required>
+                    <span class="field-error">Please enter your date of birth.</span>
+                  </div>
+                  <div class="field">
+                    <label for="app-phone">Phone Number</label>
+                    <input id="app-phone" name="phone" type="tel" autocomplete="tel" placeholder="(555) 555-0100" required>
+                    <span class="field-error">Please enter a valid phone number.</span>
+                  </div>
+                  <div class="field full">
+                    <label for="app-email">Email Address <span class="hint">(optional, but recommended)</span></label>
+                    <input id="app-email" name="email" type="email" autocomplete="email" placeholder="you@example.com">
+                    <span class="field-error">Please enter a valid email address.</span>
+                  </div>
+                </div>
+
+                <div class="field full" style="margin-top:18px;">
+                  <label>Current Mailing Address</label>
+                </div>
+                <div class="address-grid">
+                  <div class="field">
+                    <label for="app-addr-street" class="hint">Street Address</label>
+                    <input id="app-addr-street" name="addressStreet" type="text" autocomplete="address-line1" required>
+                    <span class="field-error">Required.</span>
+                  </div>
+                  <div class="field">
+                    <label for="app-addr-city" class="hint">City</label>
+                    <input id="app-addr-city" name="addressCity" type="text" autocomplete="address-level2" required>
+                    <span class="field-error">Required.</span>
+                  </div>
+                  <div class="field">
+                    <label for="app-addr-state" class="hint">State</label>
+                    <input id="app-addr-state" name="addressState" type="text" autocomplete="address-level1" required>
+                    <span class="field-error">Required.</span>
+                  </div>
+                  <div class="field">
+                    <label for="app-addr-zip" class="hint">ZIP Code</label>
+                    <input id="app-addr-zip" name="addressZip" type="text" inputmode="numeric" autocomplete="postal-code" required>
+                    <span class="field-error">Required.</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="form-section">
+                <h3><span class="step-num">2</span> Household Information</h3>
+                <p class="section-note">Tell us who would be moving in with you, if anyone.</p>
+                <div class="form-grid">
+                  <div class="field">
+                    <label for="app-household-size">Household Size</label>
+                    <input id="app-household-size" name="householdSize" type="number" min="1" max="20" required>
+                    <span class="field-error">Please enter the number of people in your household.</span>
+                  </div>
+                  <div class="field">
+                    <label for="app-move-date">Anticipated Move-In Date</label>
+                    <input id="app-move-date" name="moveInDate" type="date">
+                  </div>
+                  <div class="field full">
+                    <label for="app-household-ages">Ages of All Household Members</label>
+                    <input id="app-household-ages" name="householdAges" type="text" placeholder="e.g. 34, 10, 8" required>
+                    <span class="field-error">Please list the ages of everyone in the household.</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="form-section">
+                <h3><span class="step-num">3</span> Current Housing Situation</h3>
+                <div class="form-grid">
+                  <div class="field full">
+                    <label for="app-housing-status">Current Housing Status</label>
+                    <select id="app-housing-status" name="housingStatus" required>
+                      <option value="" selected disabled>Select one</option>
+                      <option value="homeless-shelter">Homeless / staying in a shelter</option>
+                      <option value="staying-with-family">Staying with family or friends</option>
+                      <option value="renting">Currently renting</option>
+                      <option value="transitional">In transitional housing</option>
+                      <option value="other">Other</option>
+                    </select>
+                    <span class="field-error">Please select your current housing status.</span>
+                  </div>
+                  <div class="field full">
+                    <label for="app-housing-details">Briefly describe your current situation</label>
+                    <textarea id="app-housing-details" name="housingDetails" required></textarea>
+                    <span class="field-error">Please share a brief description.</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="form-section">
+                <h3><span class="step-num">4</span> Reason for Applying</h3>
+                <div class="form-grid">
+                  <div class="field full">
+                    <label for="app-reason">Why are you applying to Our Home?</label>
+                    <textarea id="app-reason" name="reason" required></textarea>
+                    <span class="field-error">Please tell us why you're applying.</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="form-section">
+                <h3><span class="step-num">5</span> Referral Source</h3>
+                <div class="form-grid">
+                  <div class="field">
+                    <label for="app-referral-source">How did you hear about us?</label>
+                    <select id="app-referral-source" name="referralSource">
+                      <option value="" selected disabled>Select one</option>
+                      <option value="case-worker">Case worker</option>
+                      <option value="social-services">Social services agency</option>
+                      <option value="friend-family">Friend or family member</option>
+                      <option value="community-org">Community organization</option>
+                      <option value="other">Other</option>
+                    </select>
+                  </div>
+                  <div class="field">
+                    <label for="app-referral-name">Referring Person / Agency <span class="hint">(if applicable)</span></label>
+                    <input id="app-referral-name" name="referralName" type="text">
+                  </div>
+                  <div class="field full">
+                    <label for="app-referral-phone">Referral Contact Phone <span class="hint">(if applicable)</span></label>
+                    <input id="app-referral-phone" name="referralPhone" type="tel">
+                  </div>
+                </div>
+              </div>
+
+              <div class="form-section">
+                <h3><span class="step-num">6</span> Emergency Contact</h3>
+                <div class="form-grid">
+                  <div class="field">
+                    <label for="app-ec-name">Emergency Contact Name</label>
+                    <input id="app-ec-name" name="emergencyName" type="text" required>
+                    <span class="field-error">Please enter an emergency contact name.</span>
+                  </div>
+                  <div class="field">
+                    <label for="app-ec-relationship">Relationship to Applicant</label>
+                    <input id="app-ec-relationship" name="emergencyRelationship" type="text" required>
+                    <span class="field-error">Please enter the relationship.</span>
+                  </div>
+                  <div class="field full">
+                    <label for="app-ec-phone">Emergency Contact Phone</label>
+                    <input id="app-ec-phone" name="emergencyPhone" type="tel" required>
+                    <span class="field-error">Please enter a valid phone number.</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="form-section">
+                <h3><span class="step-num">7</span> Certification</h3>
+                <div class="form-grid">
+                  <div class="field full">
+                    <label class="checkbox-row" for="app-certify">
+                      <input id="app-certify" name="certify" type="checkbox" required>
+                      <span>I certify that the information provided in this application is accurate to the best of my knowledge.</span>
+                    </label>
+                    <span class="field-error">Please confirm certification to continue.</span>
+                  </div>
+                  <div class="field">
+                    <label for="app-signature">Typed Signature (Full Name)</label>
+                    <input id="app-signature" name="signature" type="text" required>
+                    <span class="field-error">Please type your full name as your signature.</span>
+                  </div>
+                  <div class="field">
+                    <label for="app-signature-date">Date</label>
+                    <input id="app-signature-date" name="signatureDate" type="date" required>
+                    <span class="field-error">Please enter today's date.</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="form-actions">
+                <button type="submit" class="btn btn-primary">Submit Application</button>
+                <span class="muted" style="font-size:0.9rem;">Fields marked required must be completed before submitting.</span>
+              </div>
+              <p class="form-footnote">This is a preview form — see the notice above. Your information is not transmitted or stored anywhere by this page.</p>
+            </form>
+
+            <div class="form-success" id="applicationSuccess" role="status" tabindex="-1">
+              <div class="check" aria-hidden="true">&#10003;</div>
+              <h3>Thank you<span id="successApplicantName"></span> — your application preview is complete.</h3>
+              <p>In the live version of this site, your application will be received by our team and (soon) automatically saved as a PDF to our secure records. For now, please also reach out directly so we can follow up personally:</p>
+              <p><strong>[info@ourhome.org]</strong> &nbsp;&middot;&nbsp; <strong>[(000) 000-0000]</strong></p>
+              <div class="success-actions">
+                <button type="button" id="applyAnother" class="btn btn-outline-dark">Fill Out Another</button>
+                <a class="btn btn-primary" href="../index.html">Return Home</a>
+              </div>
+            </div>
+          </div>
+
+          <aside class="aside-card">
+            <h3>What to have ready</h3>
+            <ul class="check-list">
+              <li><span class="mark">&#10003;</span> Contact info for you and your household</li>
+              <li><span class="mark">&#10003;</span> Ages of everyone who'd be moving in</li>
+              <li><span class="mark">&#10003;</span> A short description of your current housing situation</li>
+              <li><span class="mark">&#10003;</span> Emergency contact name &amp; phone number</li>
+              <li><span class="mark">&#10003;</span> Referring case worker or agency, if you have one</li>
+            </ul>
+            <div class="aside-contact">
+              <p><strong>Questions before applying?</strong></p>
+              <p><a href="mailto:info@ourhome.org">[info@ourhome.org]</a></p>
+              <p><a href="tel:+10000000000">[(000) 000-0000]</a></p>
+              <p class="muted">[Office hours — e.g. Mon–Fri, 9am–5pm]</p>
+            </div>
+          </aside>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div>
+          <div class="footer-brand">
+            <img src="../assets/images/our-home-logo-nav.png" alt="Our Home">
+            <span class="footer-brand-text">Our Home</span>
+          </div>
+          <p class="footer-tagline">Safe, supportive group-home housing — helping residents build stability, one household at a time.</p>
+        </div>
+        <div class="footer-col">
+          <h4>Explore</h4>
+          <ul>
+            <li><a href="../index.html">Home</a></li>
+            <li><a href="index.html">Applications</a></li>
+            <li><a href="../about/index.html">About</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>Contact</h4>
+          <ul>
+            <li><a href="mailto:info@ourhome.org">[info@ourhome.org]</a></li>
+            <li><a href="tel:+10000000000">[(000) 000-0000]</a></li>
+            <li>[City, State]</li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span>&copy; <span data-year></span> Our Home. All rights reserved.</span>
+        <a class="built-by" href="https://structurecollective.com" target="_blank" rel="noopener">Built by Structure Collective</a>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>
