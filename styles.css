@@ -623,6 +623,17 @@ img { max-width: 100%; display: block; }
   font-size: 1.1rem;
 }
 .footer-tagline { color: rgba(255, 255, 255, 0.65); font-size: 0.92rem; max-width: 34ch; }
+.footer-operated-by {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.14);
+  color: rgba(255, 255, 255, 0.65);
+  font-size: 0.82rem;
+}
+.footer-operated-by img { height: 22px; width: auto; }
 .footer-col h4 {
   color: #fff;
   font-size: 0.82rem;
