@@ -66,7 +66,55 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     });
 
-    form.addEventListener('submit', (e) => {
+    function getSubmitError() {
+      let el = document.getElementById('applicationSubmitError');
+      if (!el) {
+        el = document.createElement('div');
+        el.id = 'applicationSubmitError';
+        el.className = 'field-error';
+        el.style.display = 'none';
+        el.style.marginBottom = '16px';
+        el.style.fontSize = '14px';
+        form.prepend(el);
+      }
+      return el;
+    }
+
+    function showSubmitError(message) {
+      const el = getSubmitError();
+      if (message) {
+        el.textContent = message;
+        el.style.display = 'block';
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      } else {
+        el.style.display = 'none';
+      }
+    }
+
+    // Builds the JSON payload the /api/apply endpoint expects, handling
+    // grouped checkboxes (daysAvailable, shiftPreference) as arrays and
+    // single checkboxes (certifyAccurate, certifyVerify) as booleans.
+    function buildPayload() {
+      const data = new FormData(form);
+      const payload = {};
+      const multiFields = new Set(['daysAvailable', 'shiftPreference']);
+      const checkboxFields = ['certifyAccurate', 'certifyVerify'];
+
+      for (const key of new Set(data.keys())) {
+        if (multiFields.has(key)) {
+          payload[key] = data.getAll(key);
+        } else {
+          payload[key] = data.get(key);
+        }
+      }
+      checkboxFields.forEach((key) => {
+        const el = form.querySelector(`[name="${key}"]`);
+        payload[key] = !!(el && el.checked);
+      });
+      return payload;
+    }
+
+    form.addEventListener('submit', async (e) => {
       e.preventDefault();
       const fields = Array.from(form.querySelectorAll('input, select, textarea'));
       let allValid = true;
@@ -88,21 +136,39 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
       }
 
-      // Preview-mode "submission" — no backend is connected yet.
-      // Fill in the applicant's name on the success screen for a nice touch.
-      const nameField = form.querySelector('#app-full-name');
-      const nameSpan = document.getElementById('successApplicantName');
-      if (nameField && nameSpan) {
-        const first = nameField.value.trim().split(/\s+/)[0] || '';
-        nameSpan.textContent = first ? `, ${first}` : '';
-      }
+      showSubmitError('');
+      const submitBtn = form.querySelector('button[type="submit"], input[type="submit"]');
+      if (submitBtn) submitBtn.disabled = true;
 
-      form.style.display = 'none';
-      if (successPanel) {
-        successPanel.classList.add('visible');
-        successPanel.setAttribute('tabindex', '-1');
-        successPanel.focus();
-        successPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      try {
+        const res = await fetch('/api/apply', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(buildPayload()),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok || !data.success) {
+          throw new Error(data.error || 'Something went wrong submitting your application. Please try again.');
+        }
+
+        const nameField = form.querySelector('#app-full-name');
+        const nameSpan = document.getElementById('successApplicantName');
+        if (nameField && nameSpan) {
+          const first = nameField.value.trim().split(/\s+/)[0] || '';
+          nameSpan.textContent = first ? `, ${first}` : '';
+        }
+
+        form.style.display = 'none';
+        if (successPanel) {
+          successPanel.classList.add('visible');
+          successPanel.setAttribute('tabindex', '-1');
+          successPanel.focus();
+          successPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      } catch (err) {
+        showSubmitError(err.message || 'Something went wrong submitting your application. Please try again.');
+      } finally {
+        if (submitBtn) submitBtn.disabled = false;
       }
     });
 

@@ -19,6 +19,15 @@
       "bucket_name": "our-home-application-pdfs"
     }
   ],
+  "vars": {
+    /* Comma-separated allowlist of admin emails, checked server-side as a
+       backup to Cloudflare Access (see src/lib/access.js). Set this to the
+       same two emails used in the Access policy. */
+    "ADMIN_EMAILS": "admin@structurecollective.com,ellenatourhome@aol.com",
+    /* Must be an email address on a domain verified in your Resend account,
+       e.g. "Our Home <hiring@ourhomenc.com>". */
+    "FROM_EMAIL": "Our Home <hiring@ourhomenc.com>"
+  },
   "observability": {
     "enabled": true
   }

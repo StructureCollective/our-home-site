@@ -3,3 +3,6 @@ wrangler.jsonc
 d1/
 .git/
 .assetsignore
+package.json
+package-lock.json
+node_modules/

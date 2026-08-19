@@ -1,24 +1,75 @@
 // Our Home -- Worker entry point.
 //
-// This replaces the previous "static assets only" deployment. It currently
-// behaves identically to the old static site (every request is served from
-// the same files as before, via the ASSETS binding), but now that there's a
-// real script here, the D1 (DB) and R2 (PDF_BUCKET) bindings declared in
-// wrangler.jsonc are available for use -- and it gives us a place to add the
-// application submission and admin endpoints next, under /api/*.
+// Serves the static site as before via the ASSETS binding, and handles
+// /api/* for the job application flow:
+//   POST /api/apply                                   -- public, form submission
+//   GET  /api/admin/applications                       -- admin, list
+//   GET  /api/admin/applications/:id                   -- admin, detail
+//   GET  /api/admin/applications/:id/pdf                -- admin, download PDF
+//   POST /api/admin/applications/:id/send-phone-interview
+//   POST /api/admin/applications/:id/send-zoom
+//
+// /admin* and /api/admin* are protected at the edge by a Cloudflare Access
+// application (see src/lib/access.js for the defense-in-depth check on our
+// side too).
+
+import { handleApply } from './routes/apply.js';
+import {
+  handleList,
+  handleDetail,
+  handlePdf,
+  handleSendPhoneInterview,
+  handleSendZoom,
+} from './routes/admin.js';
+
+const ADMIN_DETAIL_RE = /^\/api\/admin\/applications\/(\d+)$/;
+const ADMIN_PDF_RE = /^\/api\/admin\/applications\/(\d+)\/pdf$/;
+const ADMIN_PHONE_RE = /^\/api\/admin\/applications\/(\d+)\/send-phone-interview$/;
+const ADMIN_ZOOM_RE = /^\/api\/admin\/applications\/(\d+)\/send-zoom$/;
 
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
+    const { pathname } = url;
 
-    if (url.pathname.startsWith('/api/')) {
-      // Placeholder -- application submission handling and admin endpoints
-      // (listing applicants, sending interview emails, etc.) will be added
-      // here next.
-      return new Response('Not implemented yet', { status: 501 });
+    if (pathname.startsWith('/api/')) {
+      try {
+        return await routeApi(request, env, pathname);
+      } catch (err) {
+        return new Response(JSON.stringify({ error: 'Internal error', detail: String(err && err.message || err) }), {
+          status: 500,
+          headers: { 'Content-Type': 'application/json' },
+        });
+      }
     }
 
     // Everything else: serve the static site exactly as before.
     return env.ASSETS.fetch(request);
   },
 };
+
+async function routeApi(request, env, pathname) {
+  if (pathname === '/api/apply') {
+    return handleApply(request, env);
+  }
+
+  if (pathname === '/api/admin/applications' && request.method === 'GET') {
+    return handleList(request, env);
+  }
+
+  let m;
+  if ((m = pathname.match(ADMIN_PDF_RE)) && request.method === 'GET') {
+    return handlePdf(request, env, Number(m[1]));
+  }
+  if ((m = pathname.match(ADMIN_PHONE_RE)) && request.method === 'POST') {
+    return handleSendPhoneInterview(request, env, Number(m[1]));
+  }
+  if ((m = pathname.match(ADMIN_ZOOM_RE)) && request.method === 'POST') {
+    return handleSendZoom(request, env, Number(m[1]));
+  }
+  if ((m = pathname.match(ADMIN_DETAIL_RE)) && request.method === 'GET') {
+    return handleDetail(request, env, Number(m[1]));
+  }
+
+  return new Response('Not found', { status: 404 });
+}

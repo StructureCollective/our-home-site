@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Our Home — Admin</title>
+  <link rel="icon" type="image/png" sizes="32x32" href="../assets/images/favicon-32.png">
+  <link rel="stylesheet" href="../styles.css">
+  <style>
+    /* Admin-only layout. Deliberately separate from styles.css so changes
+       here can't affect the public site. */
+    .admin-shell { max-width: 1000px; margin: 0 auto; padding: 32px 20px 80px; }
+    .admin-header { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; margin-bottom: 24px; flex-wrap: wrap; }
+    .admin-header h1 { margin: 0; }
+    .admin-tabs { display: flex; gap: 8px; margin-bottom: 20px; }
+    .admin-tab { padding: 6px 14px; border-radius: 999px; border: 1px solid #d8d8d8; background: #fff; cursor: pointer; font-size: 14px; }
+    .admin-tab.active { background: #0b3550; color: #fff; border-color: #0b3550; }
+    .app-card { border: 1px solid #e2e2e2; border-radius: 12px; padding: 16px 18px; margin-bottom: 14px; background: #fff; }
+    .app-card-top { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; align-items: center; }
+    .app-name { font-weight: 700; font-size: 16px; }
+    .app-meta { color: #666; font-size: 13px; margin-top: 2px; }
+    .status-pill { font-size: 12px; padding: 3px 10px; border-radius: 999px; font-weight: 600; white-space: nowrap; }
+    .status-submitted { background: #fdf1cf; color: #7a5c00; }
+    .status-phone_interview_sent { background: #dceefb; color: #1b5e8a; }
+    .status-zoom_sent { background: #e3d9fb; color: #4a2f8f; }
+    .status-hired { background: #d9f3df; color: #1e6b34; }
+    .status-not_selected { background: #f3d9d9; color: #8a1b1b; }
+    .app-actions { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+    .app-actions button, .app-actions a.btn-small { font-size: 13px; padding: 6px 12px; border-radius: 8px; border: 1px solid #0b3550; background: #fff; color: #0b3550; cursor: pointer; text-decoration: none; }
+    .app-actions button.primary { background: #0b3550; color: #fff; }
+    .app-actions button:disabled { opacity: 0.45; cursor: not-allowed; }
+    .empty-state { color: #666; padding: 40px 0; text-align: center; }
+    .error-banner { background: #f3d9d9; color: #8a1b1b; padding: 10px 14px; border-radius: 8px; margin-bottom: 16px; display: none; }
+    dialog.modal { border: none; border-radius: 12px; padding: 24px; max-width: 440px; width: 90%; }
+    dialog.modal::backdrop { background: rgba(0,0,0,0.4); }
+    dialog.modal label { display: block; font-size: 13px; font-weight: 600; margin: 12px 0 4px; }
+    dialog.modal input, dialog.modal textarea { width: 100%; padding: 8px 10px; border: 1px solid #ccc; border-radius: 6px; font: inherit; }
+    dialog.modal .modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 18px; }
+  </style>
+</head>
+<body>
+  <div class="admin-shell">
+    <div class="admin-header">
+      <h1>Applicants</h1>
+      <span id="whoami" class="app-meta"></span>
+    </div>
+
+    <div class="admin-tabs" id="filterTabs">
+      <button class="admin-tab active" data-filter="all">All</button>
+      <button class="admin-tab" data-filter="submitted">New</button>
+      <button class="admin-tab" data-filter="phone_interview_sent">Phone interview sent</button>
+      <button class="admin-tab" data-filter="zoom_sent">Zoom sent</button>
+    </div>
+
+    <div id="errorBanner" class="error-banner"></div>
+    <div id="list"><p class="empty-state">Loading applicants…</p></div>
+  </div>
+
+  <dialog id="zoomModal" class="modal">
+    <form method="dialog" id="zoomForm">
+      <h3 style="margin:0;">Send Zoom interview</h3>
+      <label for="zoomLink">Zoom link</label>
+      <input type="url" id="zoomLink" required placeholder="https://zoom.us/j/...">
+      <label for="zoomTime">Interview time (optional)</label>
+      <input type="text" id="zoomTime" placeholder="e.g. Thu Aug 27, 2pm ET">
+      <label for="zoomMessage">Extra message (optional)</label>
+      <textarea id="zoomMessage" rows="3"></textarea>
+      <div class="modal-actions">
+        <button type="button" id="zoomCancel" class="btn btn-outline">Cancel</button>
+        <button type="submit" class="btn btn-gold">Send</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script src="admin.js" defer></script>
+</body>
+</html>
