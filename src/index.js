@@ -6,6 +6,7 @@
 //   GET  /api/admin/me                                  -- admin, who's logged in
 //   GET  /api/admin/applications                       -- admin, list
 //   GET  /api/admin/applications/:id                   -- admin, detail
+//   DELETE /api/admin/applications/:id                  -- admin, permanently delete
 //   GET  /api/admin/applications/:id/pdf                -- admin, download PDF
 //   POST /api/admin/applications/:id/send-phone-interview
 //   POST /api/admin/applications/:id/send-zoom
@@ -24,6 +25,7 @@ import {
   handleMe,
   handleList,
   handleDetail,
+  handleDeleteApplication,
   handlePdf,
   handleSendPhoneInterview,
   handleSendZoom,
@@ -87,6 +89,9 @@ async function routeApi(request, env, pathname) {
   }
   if ((m = pathname.match(ADMIN_DETAIL_RE)) && request.method === 'GET') {
     return handleDetail(request, env, Number(m[1]));
+  }
+  if ((m = pathname.match(ADMIN_DETAIL_RE)) && request.method === 'DELETE') {
+    return handleDeleteApplication(request, env, Number(m[1]));
   }
   if ((m = pathname.match(SCHEDULE_RE)) && request.method === 'GET') {
     return handleScheduleGet(request, env, m[1]);

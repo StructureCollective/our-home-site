@@ -31,6 +31,7 @@ export const FIELD_MAP = {
   workAuthorized: 'work_authorized',
   driversLicense: 'drivers_license',
   backgroundCheckConsent: 'background_check_consent',
+  groupHomeExperience: 'group_home_experience',
 
   educationLevel: 'education_level',
   schoolName: 'school_name',
@@ -78,6 +79,7 @@ export const REQUIRED_FIELDS = [
   'workAuthorized',
   'driversLicense',
   'backgroundCheckConsent',
+  'groupHomeExperience',
   'educationLevel',
 ];
 
@@ -151,6 +153,13 @@ export async function updateStatus(env, id, { status, timestampColumn, actor }) 
     .prepare(`UPDATE applications SET ${setClauses.join(', ')} WHERE id = ?`)
     .bind(...values, id)
     .run();
+}
+
+// Permanently removes an application row. The caller (handleDeleteApplication
+// in routes/admin.js) is responsible for deleting the associated PDF out of
+// R2 first -- this only touches D1.
+export async function deleteApplication(env, id) {
+  await env.DB.prepare('DELETE FROM applications WHERE id = ?').bind(id).run();
 }
 
 export async function logActivity(env, { applicationId, actor, action, detail }) {

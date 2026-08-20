@@ -187,6 +187,8 @@
       cursor: pointer; text-decoration: none; font-family: var(--font-body);
     }
     .app-actions button.primary { background: var(--ba-black); color: #fff; border-color: var(--ba-black); }
+    .app-actions button.danger { border-color: #b3261e; color: #b3261e; margin-left: auto; }
+    .app-actions button.danger:hover { background: #b3261e; color: #fff; }
     .app-actions button:disabled { opacity: 0.4; cursor: not-allowed; }
     .empty-state { color: var(--muted); padding: 40px 0; text-align: center; }
     .error-banner { background: #f3d9d9; color: #8a1b1b; padding: 10px 14px; border-radius: 8px; margin-bottom: 16px; display: none; }
@@ -205,6 +207,8 @@
     .btn { display: inline-block; padding: 8px 16px; border-radius: 8px; font-size: 13.5px; font-weight: 600; cursor: pointer; border: 1px solid transparent; }
     .btn-outline { background: #fff; border-color: #ccc; color: var(--ink); }
     .btn-gold { background: var(--ba-gold); border-color: var(--ba-gold); color: #fff; }
+    .btn-danger { background: #b3261e; border-color: #b3261e; color: #fff; }
+    .btn-danger:disabled { opacity: 0.6; cursor: not-allowed; }
 
     /* ---------- Footer ---------- */
     .admin-footer {
@@ -349,6 +353,19 @@
       <div class="modal-actions">
         <button type="button" id="zoomCancel" class="btn btn-outline">Cancel</button>
         <button type="submit" class="btn btn-gold">Send</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="deleteModal" class="modal">
+    <form method="dialog" id="deleteForm">
+      <h3 style="margin:0;">Delete this application?</h3>
+      <p class="hint" style="font-size:13px;margin-top:10px;">
+        This permanently removes <strong id="deleteApplicantName">this applicant</strong>'s application and their stored PDF. This cannot be undone.
+      </p>
+      <div class="modal-actions">
+        <button type="button" id="deleteCancel" class="btn btn-outline">Cancel</button>
+        <button type="submit" class="btn btn-danger" id="deleteConfirm">Delete Permanently</button>
       </div>
     </form>
   </dialog>

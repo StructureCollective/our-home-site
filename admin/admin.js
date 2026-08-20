@@ -26,6 +26,7 @@ let currentFilter = 'all';
 let currentSearch = '';
 let zoomTargetApp = null;
 let phoneTargetApp = null;
+let deleteTargetApp = null;
 
 function showError(message) {
   errorBanner.textContent = message;
@@ -178,11 +179,13 @@ function renderCard(app) {
       <a class="btn-small" href="/api/admin/applications/${app.id}/pdf" target="_blank" rel="noopener">Download PDF</a>
       <button data-action="phone" ${canSendPhone ? '' : 'disabled'}>Send phone interview email</button>
       <button data-action="zoom" class="primary" ${canSendZoom ? '' : 'disabled'} title="${canSendZoom ? '' : 'Available once the applicant has confirmed a phone interview time'}">Send Zoom interview</button>
+      <button data-action="delete" class="danger" type="button">Delete</button>
     </div>
   `;
 
   card.querySelector('[data-action="phone"]').addEventListener('click', () => openPhoneModal(app));
   card.querySelector('[data-action="zoom"]').addEventListener('click', () => openZoomModal(app));
+  card.querySelector('[data-action="delete"]').addEventListener('click', () => openDeleteModal(app));
 
   return card;
 }
@@ -284,6 +287,41 @@ document.getElementById('zoomForm').addEventListener('submit', async (e) => {
     await loadApplications();
   } catch (err) {
     showError(err.message);
+  }
+});
+
+// ---------------- Delete confirmation ----------------
+
+function openDeleteModal(app) {
+  deleteTargetApp = app;
+  document.getElementById('deleteApplicantName').textContent = app.full_name;
+  document.getElementById('deleteConfirm').disabled = false;
+  document.getElementById('deleteConfirm').textContent = 'Delete Permanently';
+  document.getElementById('deleteModal').showModal();
+}
+
+document.getElementById('deleteCancel').addEventListener('click', () => {
+  document.getElementById('deleteModal').close();
+});
+
+document.getElementById('deleteForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  if (!deleteTargetApp) return;
+
+  const confirmBtn = document.getElementById('deleteConfirm');
+  confirmBtn.disabled = true;
+  confirmBtn.textContent = 'Deleting…';
+
+  try {
+    showError('');
+    await api(`/api/admin/applications/${deleteTargetApp.id}`, { method: 'DELETE' });
+    document.getElementById('deleteModal').close();
+    await loadApplications();
+  } catch (err) {
+    showError(err.message);
+  } finally {
+    confirmBtn.disabled = false;
+    confirmBtn.textContent = 'Delete Permanently';
   }
 });
 

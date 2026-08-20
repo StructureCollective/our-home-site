@@ -60,7 +60,7 @@
         <div class="breadcrumb"><a href="../index.html">Home</a> / Careers</div>
         <span class="eyebrow">Employment Application</span>
         <h1>Apply to Join Our Team</h1>
-        <p>Fill out the form below to start your application. It takes about 10 minutes — you don't need to have every detail perfect, our hiring team will follow up on anything we need clarified.</p>
+        <p>Fill out the form below to start your application. It takes about 10 minutes, and you don't need to have every detail perfect; our hiring team will follow up on anything we need clarified.</p>
       </div>
     </section>
 
@@ -120,14 +120,7 @@
                   <div class="field full">
                     <label for="app-position">Position Applying For</label>
                     <select id="app-position" name="position" required>
-                      <option value="" selected disabled>Select a position</option>
-                      <option value="youth-care-worker">[Youth Care Worker / Residential Counselor]</option>
-                      <option value="house-manager">[House Manager]</option>
-                      <option value="overnight-counselor">[Overnight Youth Counselor]</option>
-                      <option value="case-manager">[Case Manager]</option>
-                      <option value="admin-assistant">[Administrative Assistant]</option>
-                      <option value="cook-kitchen">[Cook / Kitchen Staff]</option>
-                      <option value="other">Other</option>
+                      <option value="habilitation-technician" selected>Habilitation Technician</option>
                     </select>
                     <span class="field-error">Please select the position you're applying for.</span>
                   </div>
@@ -242,6 +235,15 @@
                     </select>
                     <span class="field-error">Please select an option.</span>
                   </div>
+                  <div class="field full">
+                    <label for="app-group-home-experience">Have you worked in a group home or similar environment before?</label>
+                    <select id="app-group-home-experience" name="groupHomeExperience" required>
+                      <option value="" selected disabled>Select one</option>
+                      <option value="yes">Yes</option>
+                      <option value="no">No</option>
+                    </select>
+                    <span class="field-error">Please select an option.</span>
+                  </div>
                 </div>
               </div>
 
@@ -265,11 +267,11 @@
                     <input id="app-school-name" name="schoolName" type="text">
                   </div>
                   <div class="field full">
-                    <label for="app-certifications">Relevant Certifications <span class="hint">(optional — e.g. CPR/First Aid, CPI, CNA, MAT)</span></label>
+                    <label for="app-certifications">Relevant Certifications <span class="hint">(optional, e.g. CPR/First Aid, CPI, CNA, MAT)</span></label>
                     <input id="app-certifications" name="certifications" type="text" placeholder="e.g. CPR/First Aid, CPI">
                   </div>
                   <div class="field full">
-                    <label for="app-child-experience">Experience Working with Children or Youth <span class="hint">(optional — paid or volunteer)</span></label>
+                    <label for="app-child-experience">Experience Working with Children or Youth <span class="hint">(optional, paid or volunteer)</span></label>
                     <textarea id="app-child-experience" name="childExperience" placeholder="e.g. camp counselor, childcare, foster care, tutoring, coaching..."></textarea>
                   </div>
                 </div>
@@ -277,7 +279,7 @@
 
               <div class="form-section">
                 <h3><span class="step-num">5</span> Employment History</h3>
-                <p class="section-note">Most recent employer first. Add a second if you have one — otherwise leave it blank.</p>
+                <p class="section-note">Most recent employer first. Add a second if you have one; otherwise leave it blank.</p>
 
                 <p class="muted" style="font-weight:600;margin-bottom:6px;">Employer 1</p>
                 <div class="form-grid">
@@ -424,7 +426,7 @@
                 <button type="submit" class="btn btn-primary">Submit Application</button>
                 <span class="muted" style="font-size:0.9rem;">Fields marked required must be completed before submitting.</span>
               </div>
-              <p class="form-footnote">Your information is submitted securely and reviewed by our hiring team — it isn't shared outside Our Home.</p>
+              <p class="form-footnote">Your information is submitted securely and reviewed by our hiring team, and isn't shared outside Our Home.</p>
             </form>
 
             <div class="form-success" id="applicationSuccess" role="status" tabindex="-1">
@@ -442,7 +444,7 @@
             <h3>What to have ready</h3>
             <ul class="check-list">
               <li><span class="mark">&#10003;</span> Contact info and mailing address</li>
-              <li><span class="mark">&#10003;</span> Your work history — employer names, dates, and supervisor contacts</li>
+              <li><span class="mark">&#10003;</span> Your work history: employer names, dates, and supervisor contacts</li>
               <li><span class="mark">&#10003;</span> Two professional references with phone numbers</li>
               <li><span class="mark">&#10003;</span> Certifications you hold, if any (CPR, First Aid, CPI, etc.)</li>
               <li><span class="mark">&#10003;</span> Any experience working with children or youth</li>
@@ -450,9 +452,9 @@
             </ul>
             <div class="aside-contact">
               <p><strong>Questions before applying?</strong></p>
-              <p><a href="mailto:hr@ourhome.org">[hr@ourhome.org]</a></p>
-              <p><a href="tel:+10000000000">[(000) 000-0000]</a></p>
-              <p class="muted">[Office hours — e.g. Mon–Fri, 9am–5pm]</p>
+              <p><a href="mailto:hiring@ourhomenc.com">hiring@ourhomenc.com</a></p>
+              <p><a href="tel:+13367639367">(336) 763-9367</a></p>
+              <p class="muted">Office hours: Mon–Fri, 9am–5pm</p>
             </div>
           </aside>
         </div>
@@ -468,7 +470,7 @@
             <img src="../assets/images/our-home-logo-nav.png" alt="Our Home">
             <span class="footer-brand-text">Our Home</span>
           </div>
-          <p class="footer-tagline">A safe, supportive home for children and youth — powered by a team that cares.</p>
+          <p class="footer-tagline">A safe, supportive home for children and youth, powered by a team that cares.</p>
           <div class="footer-operated-by">
             <img src="../assets/images/ba-logo-icon.png" alt="Black &amp; Associates Global, Inc. logo">
             <span>A program of Black &amp; Associates Global, Inc.</span>
@@ -485,9 +487,10 @@
         <div class="footer-col">
           <h4>Contact</h4>
           <ul>
-            <li><a href="mailto:hr@ourhome.org">[hr@ourhome.org]</a></li>
-            <li><a href="tel:+10000000000">[(000) 000-0000]</a></li>
-            <li>[City, State]</li>
+            <li><a href="mailto:hiring@ourhomenc.com">hiring@ourhomenc.com</a></li>
+            <li><a href="tel:+13367639367">(336) 763-9367</a></li>
+            <li>408 Andrew St</li>
+            <li>Greensboro, NC 27406</li>
           </ul>
         </div>
       </div>

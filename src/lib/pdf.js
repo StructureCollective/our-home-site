@@ -44,10 +44,11 @@ function buildSections(row) {
       ['Willing to work overnight shifts', yesNo(row.overnight_ok)],
     ]),
     section('Employment Eligibility', [
-      ['At least 18 years old', yesNo(row.age_eligible)],
+      ['At least 21 years old', yesNo(row.age_eligible)],
       ['Authorized to work in the U.S.', yesNo(row.work_authorized)],
       ['Valid driver\'s license', yesNo(row.drivers_license)],
       ['Consents to background check', yesNo(row.background_check_consent)],
+      ['Group home / similar environment experience', yesNo(row.group_home_experience)],
     ]),
     section('Education & Certifications', [
       ['Highest education level', row.education_level],

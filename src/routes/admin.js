@@ -9,6 +9,7 @@ import {
   listApplications,
   listAllApplicationsFull,
   getApplication,
+  deleteApplication,
   logActivity,
   randomToken,
   saveInterviewOffer,
@@ -180,6 +181,44 @@ export async function handleSendZoom(request, env, id) {
     action: 'zoom_email_sent',
     detail: JSON.stringify({ zoomLink, slots }),
   });
+
+  return json({ success: true });
+}
+
+// DELETE /api/admin/applications/:id -- permanently removes an application
+// and its stored PDF. The admin dashboard confirms with the user before
+// making this call; there's no undo once it happens.
+export async function handleDeleteApplication(request, env, id) {
+  const { email, response } = requireAdmin(request, env);
+  if (!email) return response;
+
+  const application = await getApplication(env, id);
+  if (!application) return json({ error: 'Not found' }, 404);
+
+  // Log while the row (and the id it references) still exists, and keep
+  // the applicant's name/email in the detail so the audit trail still
+  // reads sensibly once the row itself is gone.
+  try {
+    await logActivity(env, {
+      applicationId: id,
+      actor: email,
+      action: 'application_deleted',
+      detail: JSON.stringify({ fullName: application.full_name, email: application.email }),
+    });
+  } catch {
+    // Non-fatal.
+  }
+
+  if (application.pdf_key) {
+    try {
+      await env.PDF_BUCKET.delete(application.pdf_key);
+    } catch {
+      // Non-fatal -- proceed with deleting the DB row even if the R2
+      // object was already gone or briefly unreachable.
+    }
+  }
+
+  await deleteApplication(env, id);
 
   return json({ success: true });
 }
