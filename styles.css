@@ -655,6 +655,17 @@ img { max-width: 100%; display: block; }
   font-size: 0.85rem;
   color: rgba(255, 255, 255, 0.6);
 }
+.footer-bottom-links {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+.staff-login {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.85rem;
+}
+.staff-login:hover { color: #fff; }
 .built-by {
   display: inline-flex;
   align-items: center;

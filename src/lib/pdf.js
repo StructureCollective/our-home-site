@@ -1,5 +1,7 @@
-// Our Home -- renders a submitted application into a simple, readable PDF
-// using pdf-lib (pure JS, no native deps -- works fine in the Workers runtime).
+// Our Home -- renders a submitted application into a formal, letterhead-style
+// PDF using pdf-lib (pure JS, no native deps -- works fine in the Workers
+// runtime). Generated once at submission time (see routes/apply.js) and
+// stored in R2; the admin dashboard's "Download PDF" just serves that file.
 
 import { PDFDocument, StandardFonts, rgb } from 'pdf-lib';
 
@@ -7,6 +9,13 @@ const PAGE_SIZE = [612, 792]; // US Letter, points
 const MARGIN = 54;
 const LINE_HEIGHT = 16;
 const HEADING_GAP = 10;
+const FOOTER_HEIGHT = 34; // reserved space at the bottom of every page
+
+const NAVY = rgb(0.043, 0.208, 0.314); // #0b3550 -- Our Home / Black & Associates navy
+const MUTED = rgb(0.36, 0.4, 0.44);
+const INK = rgb(0.12, 0.14, 0.16);
+const LINE_GRAY = rgb(0.8, 0.8, 0.8);
+const LOGO_PATH = '/assets/images/ba-logo-full.png';
 
 function section(title, rows) {
   return { title, rows: rows.filter(([, v]) => v !== null && v !== undefined && v !== '') };
@@ -90,45 +99,107 @@ function wrapText(text, font, size, maxWidth) {
   return lines;
 }
 
-export async function generateApplicationPdf(row) {
+async function loadLogoBytes(ctx) {
+  const { env, request } = ctx || {};
+  if (!env || !env.ASSETS || !request) return null;
+  try {
+    const logoUrl = new URL(LOGO_PATH, request.url);
+    const resp = await env.ASSETS.fetch(new Request(logoUrl));
+    if (!resp.ok) return null;
+    return await resp.arrayBuffer();
+  } catch {
+    return null;
+  }
+}
+
+export async function generateApplicationPdf(row, ctx = {}) {
   const pdf = await PDFDocument.create();
   const font = await pdf.embedFont(StandardFonts.Helvetica);
   const bold = await pdf.embedFont(StandardFonts.HelveticaBold);
 
-  let page = pdf.addPage(PAGE_SIZE);
-  let y = PAGE_SIZE[1] - MARGIN;
-  const contentWidth = PAGE_SIZE[0] - MARGIN * 2;
-  const labelWidth = 190;
-
-  function newPageIfNeeded(neededHeight) {
-    if (y - neededHeight < MARGIN) {
-      page = pdf.addPage(PAGE_SIZE);
-      y = PAGE_SIZE[1] - MARGIN;
+  let logoImage = null;
+  const logoBytes = await loadLogoBytes(ctx);
+  if (logoBytes) {
+    try {
+      logoImage = await pdf.embedPng(logoBytes);
+    } catch {
+      logoImage = null;
     }
   }
 
-  function drawTitle(text) {
-    newPageIfNeeded(28);
-    page.drawText(text, { x: MARGIN, y, size: 18, font: bold, color: rgb(0.1, 0.1, 0.1) });
-    y -= 28;
+  const pages = [];
+  let page = pdf.addPage(PAGE_SIZE);
+  pages.push(page);
+  let y;
+  const contentWidth = PAGE_SIZE[0] - MARGIN * 2;
+  const labelWidth = 190;
+
+  function drawLetterhead() {
+    const topY = PAGE_SIZE[1] - MARGIN;
+    let textX = MARGIN;
+    let blockBottom = topY - 30;
+
+    if (logoImage) {
+      const logoHeight = 42;
+      const scale = logoHeight / logoImage.height;
+      const logoWidth = logoImage.width * scale;
+      page.drawImage(logoImage, { x: MARGIN, y: topY - logoHeight, width: logoWidth, height: logoHeight });
+      textX = MARGIN + logoWidth + 16;
+      blockBottom = Math.min(blockBottom, topY - logoHeight);
+    }
+
+    page.drawText('OFFICIAL EMPLOYMENT APPLICATION', { x: textX, y: topY - 14, size: 12.5, font: bold, color: NAVY });
+    page.drawText('Our Home -- A Program of Black & Associates Global, Inc.', {
+      x: textX, y: topY - 29, size: 9, font, color: MUTED,
+    });
+
+    const ruleY = blockBottom - 10;
+    page.drawLine({
+      start: { x: MARGIN, y: ruleY },
+      end: { x: PAGE_SIZE[0] - MARGIN, y: ruleY },
+      thickness: 2,
+      color: NAVY,
+    });
+    y = ruleY - 20;
+  }
+
+  function drawContinuationHeader() {
+    const topY = PAGE_SIZE[1] - MARGIN;
+    page.drawText('OFFICIAL EMPLOYMENT APPLICATION -- OUR HOME', { x: MARGIN, y: topY, size: 8.5, font: bold, color: NAVY });
+    const ruleY = topY - 8;
+    page.drawLine({
+      start: { x: MARGIN, y: ruleY },
+      end: { x: PAGE_SIZE[0] - MARGIN, y: ruleY },
+      thickness: 1,
+      color: LINE_GRAY,
+    });
+    y = ruleY - 22;
+  }
+
+  function newPageIfNeeded(neededHeight) {
+    if (y - neededHeight < MARGIN + FOOTER_HEIGHT) {
+      page = pdf.addPage(PAGE_SIZE);
+      pages.push(page);
+      drawContinuationHeader();
+    }
   }
 
   function drawSubtitle(text) {
     newPageIfNeeded(20);
-    page.drawText(text, { x: MARGIN, y, size: 11, font, color: rgb(0.35, 0.35, 0.35) });
-    y -= 20;
+    page.drawText(text, { x: MARGIN, y, size: 10.5, font, color: MUTED });
+    y -= 24;
   }
 
   function drawSectionHeading(text) {
     newPageIfNeeded(LINE_HEIGHT + HEADING_GAP + 6);
     y -= HEADING_GAP;
-    page.drawText(text, { x: MARGIN, y, size: 13, font: bold, color: rgb(0.05, 0.35, 0.3) });
+    page.drawText(text.toUpperCase(), { x: MARGIN, y, size: 12, font: bold, color: NAVY });
     y -= 4;
     page.drawLine({
       start: { x: MARGIN, y: y - 2 },
       end: { x: PAGE_SIZE[0] - MARGIN, y: y - 2 },
       thickness: 0.75,
-      color: rgb(0.8, 0.8, 0.8),
+      color: LINE_GRAY,
     });
     y -= LINE_HEIGHT;
   }
@@ -145,13 +216,13 @@ export async function generateApplicationPdf(row) {
         y: y - i * LINE_HEIGHT,
         size: 10.5,
         font,
-        color: rgb(0.1, 0.1, 0.1),
+        color: INK,
       });
     });
     y -= rowHeight;
   }
 
-  drawTitle('Our Home -- Employment Application');
+  drawLetterhead();
   drawSubtitle(`Submitted ${row.submitted_at || ''}${row.id ? `  --  Application #${row.id}` : ''}`);
 
   for (const { title, rows } of buildSections(row)) {
@@ -160,6 +231,23 @@ export async function generateApplicationPdf(row) {
       drawRow(label, value);
     }
   }
+
+  // Footer pass -- page numbers + a thin navy rule, once the final page
+  // count is known.
+  const total = pages.length;
+  pages.forEach((p, i) => {
+    const footerY = MARGIN - 10;
+    p.drawLine({
+      start: { x: MARGIN, y: footerY + 16 },
+      end: { x: PAGE_SIZE[0] - MARGIN, y: footerY + 16 },
+      thickness: 1,
+      color: NAVY,
+    });
+    p.drawText('Our Home -- Official Employment Application', { x: MARGIN, y: footerY, size: 8, font, color: MUTED });
+    const pageLabel = `Page ${i + 1} of ${total}`;
+    const labelSize = font.widthOfTextAtSize(pageLabel, 8);
+    p.drawText(pageLabel, { x: PAGE_SIZE[0] - MARGIN - labelSize, y: footerY, size: 8, font, color: MUTED });
+  });
 
   return pdf.save();
 }

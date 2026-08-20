@@ -42,7 +42,7 @@ export async function handleApply(request, env) {
 
   let pdfBytes;
   try {
-    pdfBytes = await generateApplicationPdf(full);
+    pdfBytes = await generateApplicationPdf(full, { env, request });
   } catch (err) {
     return jsonError('Could not generate the application PDF. Please try again or contact us directly.', 500);
   }
