@@ -25,11 +25,16 @@ function showError(message) {
   errorEl.style.display = 'block';
 }
 
+// Our Home operates out of Greensboro, NC -- interview times are always
+// shown in Eastern Time (with an explicit EST/EDT label) rather than the
+// visitor's own browser timezone, so what an applicant picks here always
+// matches what their confirmation email says.
 function formatSlot(iso) {
   try {
-    return new Date(iso).toLocaleString(undefined, {
+    return new Date(iso).toLocaleString('en-US', {
       weekday: 'long', month: 'long', day: 'numeric',
-      hour: 'numeric', minute: '2-digit',
+      hour: 'numeric', minute: '2-digit', timeZoneName: 'short',
+      timeZone: 'America/New_York',
     });
   } catch {
     return iso;

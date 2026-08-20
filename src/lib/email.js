@@ -70,6 +70,14 @@ const SIGN_OFF = `
   Black &amp; Associates Global, Inc.</p>
 `;
 
+// Our Home operates out of Greensboro, NC -- every date/time shown in any
+// outbound email (and on the public scheduling page) is rendered in
+// Eastern Time regardless of the recipient's own timezone, so there's a
+// single unambiguous "when" everyone is working from. America/New_York
+// correctly resolves to EST or EDT depending on the date (handles daylight
+// saving automatically).
+const DISPLAY_TIME_ZONE = 'America/New_York';
+
 // Used only by the internal admin notification email below (not part of
 // the applicant-facing fixed templates).
 function formatSlotForEmail(iso) {
@@ -77,6 +85,7 @@ function formatSlotForEmail(iso) {
     return new Date(iso).toLocaleString('en-US', {
       weekday: 'long', month: 'long', day: 'numeric',
       hour: 'numeric', minute: '2-digit', timeZoneName: 'short',
+      timeZone: DISPLAY_TIME_ZONE,
     });
   } catch {
     return iso;
@@ -90,9 +99,11 @@ function formatSlotDateTime(iso) {
     const d = new Date(iso);
     const date = d.toLocaleDateString('en-US', {
       weekday: 'long', month: 'long', day: 'numeric', year: 'numeric',
+      timeZone: DISPLAY_TIME_ZONE,
     });
     const time = d.toLocaleTimeString('en-US', {
       hour: 'numeric', minute: '2-digit', timeZoneName: 'short',
+      timeZone: DISPLAY_TIME_ZONE,
     });
     return { date, time };
   } catch {

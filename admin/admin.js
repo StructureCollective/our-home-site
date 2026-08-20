@@ -56,8 +56,14 @@ function formatDate(iso) {
     // the string doesn't already carry timezone info.
     const hasTimezone = /[zZ]$|[+-]\d{2}:\d{2}$/.test(iso);
     const normalized = hasTimezone ? iso : `${iso.replace(' ', 'T')}Z`;
-    return new Date(normalized).toLocaleString(undefined, {
-      dateStyle: 'medium', timeStyle: 'short',
+    // Our Home operates out of Greensboro, NC -- every timestamp on this
+    // dashboard is shown in Eastern Time (auto EST/EDT), same as the
+    // emails and the public scheduling page, regardless of the admin's
+    // own browser/system timezone.
+    return new Date(normalized).toLocaleString('en-US', {
+      month: 'short', day: 'numeric', year: 'numeric',
+      hour: 'numeric', minute: '2-digit', timeZoneName: 'short',
+      timeZone: 'America/New_York',
     });
   } catch {
     return iso;
@@ -84,9 +90,10 @@ async function loadWhoAmI() {
 function startClock() {
   const clockEl = document.getElementById('whoClock');
   function tick() {
-    clockEl.textContent = new Date().toLocaleString(undefined, {
+    clockEl.textContent = new Date().toLocaleString('en-US', {
       weekday: 'short', month: 'short', day: 'numeric',
-      hour: 'numeric', minute: '2-digit',
+      hour: 'numeric', minute: '2-digit', timeZoneName: 'short',
+      timeZone: 'America/New_York',
     });
   }
   tick();
