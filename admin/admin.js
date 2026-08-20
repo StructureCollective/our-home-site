@@ -6,12 +6,15 @@
 
 const listEl = document.getElementById('list');
 const errorBanner = document.getElementById('errorBanner');
-const filterTabs = document.getElementById('filterTabs');
+const searchInput = document.getElementById('searchInput');
+const statusFilter = document.getElementById('statusFilter');
 
 const STATUS_LABEL = {
   submitted: 'New',
   phone_interview_sent: 'Phone interview sent',
-  zoom_sent: 'Zoom sent',
+  phone_interview_scheduled: 'Phone interview scheduled',
+  zoom_interview_sent: 'Zoom interview sent',
+  zoom_interview_scheduled: 'Zoom interview scheduled',
   hired: 'Hired',
   not_selected: 'Not selected',
 };
@@ -20,7 +23,8 @@ const DEFAULT_PHONE_SUBJECT = 'Our Home -- next steps on your application';
 
 let applications = [];
 let currentFilter = 'all';
-let zoomTargetId = null;
+let currentSearch = '';
+let zoomTargetApp = null;
 let phoneTargetApp = null;
 
 function showError(message) {
@@ -44,7 +48,16 @@ async function api(path, options) {
 function formatDate(iso) {
   if (!iso) return '';
   try {
-    return new Date(iso.replace(' ', 'T') + 'Z').toLocaleString(undefined, {
+    // Most timestamp columns are SQLite's `datetime('now')` format
+    // ("YYYY-MM-DD HH:MM:SS", no timezone -- needs "T"/"Z" added to parse
+    // reliably). The two *_scheduled_at columns instead store the
+    // applicant's chosen slot verbatim, which is already a full ISO
+    // string (from Date#toISOString() on the scheduling page) -- adding
+    // another "Z" to those would break parsing, so only normalize when
+    // the string doesn't already carry timezone info.
+    const hasTimezone = /[zZ]$|[+-]\d{2}:\d{2}$/.test(iso);
+    const normalized = hasTimezone ? iso : `${iso.replace(' ', 'T')}Z`;
+    return new Date(normalized).toLocaleString(undefined, {
       dateStyle: 'medium', timeStyle: 'short',
     });
   } catch {
@@ -84,14 +97,19 @@ function startClock() {
 // ---------------- Dashboard KPI row ----------------
 
 function renderKpis() {
-  const counts = { submitted: 0, phone_interview_sent: 0, zoom_sent: 0, hired: 0, not_selected: 0 };
+  const counts = {
+    submitted: 0, phone_interview_sent: 0, phone_interview_scheduled: 0,
+    zoom_interview_sent: 0, zoom_interview_scheduled: 0, hired: 0, not_selected: 0,
+  };
   for (const app of applications) {
     if (counts[app.status] !== undefined) counts[app.status] += 1;
   }
   document.getElementById('kpiTotal').textContent = applications.length;
   document.getElementById('kpiSubmitted').textContent = counts.submitted;
-  document.getElementById('kpiPhone').textContent = counts.phone_interview_sent;
-  document.getElementById('kpiZoom').textContent = counts.zoom_sent;
+  // "Phone interview" / "Zoom interview" tiles cover both the "offered,
+  // awaiting the applicant" and "confirmed" sub-stages of that step.
+  document.getElementById('kpiPhone').textContent = counts.phone_interview_sent + counts.phone_interview_scheduled;
+  document.getElementById('kpiZoom').textContent = counts.zoom_interview_sent + counts.zoom_interview_scheduled;
   document.getElementById('kpiHired').textContent = counts.hired;
   document.getElementById('kpiNotSelected').textContent = counts.not_selected;
 }
@@ -101,12 +119,17 @@ function renderKpis() {
 function render() {
   renderKpis();
 
-  const filtered = currentFilter === 'all'
+  let filtered = currentFilter === 'all'
     ? applications
     : applications.filter((a) => a.status === currentFilter);
 
+  const search = currentSearch.trim().toLowerCase();
+  if (search) {
+    filtered = filtered.filter((a) => (a.full_name || '').toLowerCase().includes(search));
+  }
+
   if (filtered.length === 0) {
-    listEl.innerHTML = '<p class="empty-state">No applicants here yet.</p>';
+    listEl.innerHTML = '<p class="empty-state">No applicants match your search/filter.</p>';
     return;
   }
 
@@ -116,11 +139,30 @@ function render() {
   }
 }
 
+function renderProgressChips(app) {
+  const chips = [];
+  if (app.phone_interview_sent_at) {
+    chips.push(`<span class="progress-chip">Phone interview sent</span>`);
+  }
+  if (app.phone_interview_scheduled_at) {
+    chips.push(`<span class="progress-chip scheduled">Phone interview scheduled — ${formatDate(app.phone_interview_scheduled_at)}</span>`);
+  }
+  if (app.zoom_sent_at) {
+    chips.push(`<span class="progress-chip">Zoom interview sent</span>`);
+  }
+  if (app.zoom_interview_scheduled_at) {
+    chips.push(`<span class="progress-chip scheduled">Zoom interview scheduled — ${formatDate(app.zoom_interview_scheduled_at)}</span>`);
+  }
+  return chips.length ? `<div class="app-progress">${chips.join('')}</div>` : '';
+}
+
 function renderCard(app) {
   const card = document.createElement('div');
   card.className = 'app-card';
 
   const statusLabel = STATUS_LABEL[app.status] || app.status;
+  const canSendPhone = app.status === 'submitted';
+  const canSendZoom = app.status === 'phone_interview_scheduled';
 
   card.innerHTML = `
     <div class="app-card-top">
@@ -131,10 +173,11 @@ function renderCard(app) {
       </div>
       <span class="status-pill status-${app.status}">${statusLabel}</span>
     </div>
+    ${renderProgressChips(app)}
     <div class="app-actions">
       <a class="btn-small" href="/api/admin/applications/${app.id}/pdf" target="_blank" rel="noopener">Download PDF</a>
-      <button data-action="phone" ${app.status !== 'submitted' ? 'disabled' : ''}>Send phone interview email</button>
-      <button data-action="zoom" class="primary" ${app.status !== 'phone_interview_sent' ? 'disabled' : ''}>Send Zoom interview</button>
+      <button data-action="phone" ${canSendPhone ? '' : 'disabled'}>Send phone interview email</button>
+      <button data-action="zoom" class="primary" ${canSendZoom ? '' : 'disabled'} title="${canSendZoom ? '' : 'Available once the applicant has confirmed a phone interview time'}">Send Zoom interview</button>
     </div>
   `;
 
@@ -150,12 +193,29 @@ function escapeHtml(str) {
   }[c]));
 }
 
+// ---------------- Interview time-slot helpers ----------------
+//
+// <input type="datetime-local"> values have no timezone info; they're
+// interpreted in the browser's local time, same as the admin filling out
+// the form. Converting through `new Date(...)` and back to ISO gives a
+// consistent, unambiguous value to store and to show the applicant.
+
+function slotInputsToIso(ids) {
+  const values = ids.map((id) => document.getElementById(id).value);
+  if (values.some((v) => !v)) return null;
+  const isoValues = values.map((v) => new Date(v).toISOString());
+  return isoValues;
+}
+
 // ---------------- Phone interview modal ----------------
 
 function openPhoneModal(app) {
   phoneTargetApp = app;
   document.getElementById('phoneSubject').value = DEFAULT_PHONE_SUBJECT;
   document.getElementById('phoneMessage').value = '';
+  document.getElementById('phoneSlot1').value = '';
+  document.getElementById('phoneSlot2').value = '';
+  document.getElementById('phoneSlot3').value = '';
   document.getElementById('phoneModal').showModal();
 }
 
@@ -167,13 +227,18 @@ document.getElementById('phoneForm').addEventListener('submit', async (e) => {
   e.preventDefault();
   const subject = document.getElementById('phoneSubject').value.trim();
   const message = document.getElementById('phoneMessage').value.trim();
+  const slots = slotInputsToIso(['phoneSlot1', 'phoneSlot2', 'phoneSlot3']);
   if (!phoneTargetApp) return;
+  if (!slots) {
+    showError('Please fill in all 3 candidate interview times.');
+    return;
+  }
 
   try {
     showError('');
     await api(`/api/admin/applications/${phoneTargetApp.id}/send-phone-interview`, {
       method: 'POST',
-      body: JSON.stringify({ subject, message }),
+      body: JSON.stringify({ subject, message, slots }),
     });
     document.getElementById('phoneModal').close();
     await loadApplications();
@@ -185,10 +250,12 @@ document.getElementById('phoneForm').addEventListener('submit', async (e) => {
 // ---------------- Zoom interview modal ----------------
 
 function openZoomModal(app) {
-  zoomTargetId = app.id;
+  zoomTargetApp = app;
   document.getElementById('zoomLink').value = '';
-  document.getElementById('zoomTime').value = '';
   document.getElementById('zoomMessage').value = '';
+  document.getElementById('zoomSlot1').value = '';
+  document.getElementById('zoomSlot2').value = '';
+  document.getElementById('zoomSlot3').value = '';
   document.getElementById('zoomModal').showModal();
 }
 
@@ -199,15 +266,19 @@ document.getElementById('zoomCancel').addEventListener('click', () => {
 document.getElementById('zoomForm').addEventListener('submit', async (e) => {
   e.preventDefault();
   const zoomLink = document.getElementById('zoomLink').value.trim();
-  const interviewTime = document.getElementById('zoomTime').value.trim();
   const message = document.getElementById('zoomMessage').value.trim();
-  if (!zoomLink) return;
+  const slots = slotInputsToIso(['zoomSlot1', 'zoomSlot2', 'zoomSlot3']);
+  if (!zoomTargetApp || !zoomLink) return;
+  if (!slots) {
+    showError('Please fill in all 3 candidate interview times.');
+    return;
+  }
 
   try {
     showError('');
-    await api(`/api/admin/applications/${zoomTargetId}/send-zoom`, {
+    await api(`/api/admin/applications/${zoomTargetApp.id}/send-zoom`, {
       method: 'POST',
-      body: JSON.stringify({ zoomLink, interviewTime, message }),
+      body: JSON.stringify({ zoomLink, slots, message }),
     });
     document.getElementById('zoomModal').close();
     await loadApplications();
@@ -255,13 +326,19 @@ if (regenerateBtn) {
   });
 }
 
-// ---------------- Filters + load ----------------
+// ---------------- Search + filter ----------------
 
-filterTabs.addEventListener('click', (e) => {
-  const btn = e.target.closest('.admin-tab');
-  if (!btn) return;
-  currentFilter = btn.dataset.filter;
-  [...filterTabs.children].forEach((el) => el.classList.toggle('active', el === btn));
+let searchDebounce = null;
+searchInput.addEventListener('input', () => {
+  clearTimeout(searchDebounce);
+  searchDebounce = setTimeout(() => {
+    currentSearch = searchInput.value;
+    render();
+  }, 150);
+});
+
+statusFilter.addEventListener('change', () => {
+  currentFilter = statusFilter.value;
   render();
 });
 

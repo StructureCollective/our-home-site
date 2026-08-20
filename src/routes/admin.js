@@ -9,8 +9,9 @@ import {
   listApplications,
   listAllApplicationsFull,
   getApplication,
-  updateStatus,
   logActivity,
+  randomToken,
+  saveInterviewOffer,
 } from '../lib/db.js';
 import { sendEmail, phoneInterviewEmail, zoomInterviewEmail } from '../lib/email.js';
 import { generateApplicationPdf } from '../lib/pdf.js';
@@ -74,6 +75,11 @@ export async function handlePdf(request, env, id) {
 }
 
 // POST /api/admin/applications/:id/send-phone-interview
+//
+// Body: { subject?, message?, slots: [iso, iso, iso] } -- exactly 3
+// candidate times the admin is offering. Generates a one-time scheduling
+// token and emails the applicant a link to /schedule/?token=... where they
+// pick one of the 3 (see src/routes/schedule.js).
 export async function handleSendPhoneInterview(request, env, id) {
   const { email, response } = requireAdmin(request, env);
   if (!email) return response;
@@ -87,6 +93,13 @@ export async function handleSendPhoneInterview(request, env, id) {
 
   const body = await request.json().catch(() => ({}));
   const subject = (body.subject && body.subject.trim()) || 'Our Home -- next steps on your application';
+  const slots = Array.isArray(body.slots) ? body.slots.filter(Boolean) : [];
+  if (slots.length !== 3) {
+    return json({ error: 'Please offer exactly 3 candidate interview times.' }, 400);
+  }
+
+  const token = randomToken();
+  const scheduleUrl = `${new URL(request.url).origin}/schedule/?token=${token}`;
 
   try {
     await sendEmail(env, {
@@ -96,28 +109,30 @@ export async function handleSendPhoneInterview(request, env, id) {
         fullName: application.full_name,
         position: application.position,
         message: body.message,
+        slots,
+        scheduleUrl,
       }),
     });
   } catch (err) {
     return json({ error: `Email failed to send: ${err.message}` }, 502);
   }
 
-  await updateStatus(env, id, {
-    status: 'phone_interview_sent',
-    timestampColumn: 'phone_interview_sent_at',
-    actor: email,
-  });
+  await saveInterviewOffer(env, id, { stage: 'phone', slots, token, actor: email });
   await logActivity(env, {
     applicationId: id,
     actor: email,
     action: 'phone_interview_email_sent',
-    detail: JSON.stringify({ subject, message: body.message || null }),
+    detail: JSON.stringify({ subject, message: body.message || null, slots }),
   });
 
   return json({ success: true });
 }
 
 // POST /api/admin/applications/:id/send-zoom
+//
+// Body: { zoomLink, message?, slots: [iso, iso, iso] } -- one Zoom link
+// reused across all 3 offered times. Only allowed once the applicant has
+// confirmed (not just been offered) a phone interview time.
 export async function handleSendZoom(request, env, id) {
   const { email, response } = requireAdmin(request, env);
   if (!email) return response;
@@ -125,14 +140,22 @@ export async function handleSendZoom(request, env, id) {
   const application = await getApplication(env, id);
   if (!application) return json({ error: 'Not found' }, 404);
 
-  if (application.status !== 'phone_interview_sent') {
-    return json({ error: 'Zoom interview can only be sent after the phone interview email has been sent.' }, 409);
+  if (application.status !== 'phone_interview_scheduled') {
+    return json({ error: 'Zoom interview can only be sent after the applicant has confirmed a phone interview time.' }, 409);
   }
 
   const body = await request.json().catch(() => ({}));
-  if (!body.zoomLink) {
+  const zoomLink = body.zoomLink && String(body.zoomLink).trim();
+  if (!zoomLink) {
     return json({ error: 'zoomLink is required.' }, 400);
   }
+  const slots = Array.isArray(body.slots) ? body.slots.filter(Boolean) : [];
+  if (slots.length !== 3) {
+    return json({ error: 'Please offer exactly 3 candidate interview times.' }, 400);
+  }
+
+  const token = randomToken();
+  const scheduleUrl = `${new URL(request.url).origin}/schedule/?token=${token}`;
 
   try {
     await sendEmail(env, {
@@ -140,25 +163,22 @@ export async function handleSendZoom(request, env, id) {
       subject: 'Our Home -- your video interview details',
       html: zoomInterviewEmail({
         fullName: application.full_name,
-        zoomLink: body.zoomLink,
-        interviewTime: body.interviewTime,
+        zoomLink,
         message: body.message,
+        slots,
+        scheduleUrl,
       }),
     });
   } catch (err) {
     return json({ error: `Email failed to send: ${err.message}` }, 502);
   }
 
-  await updateStatus(env, id, {
-    status: 'zoom_sent',
-    timestampColumn: 'zoom_sent_at',
-    actor: email,
-  });
+  await saveInterviewOffer(env, id, { stage: 'zoom', slots, token, zoomLink, actor: email });
   await logActivity(env, {
     applicationId: id,
     actor: email,
     action: 'zoom_email_sent',
-    detail: JSON.stringify({ zoomLink: body.zoomLink, interviewTime: body.interviewTime || null }),
+    detail: JSON.stringify({ zoomLink, slots }),
   });
 
   return json({ success: true });

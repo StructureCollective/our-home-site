@@ -139,14 +139,23 @@
       color: var(--ink); margin-top: 4px;
     }
 
-    /* ---------- Filters ---------- */
-    .admin-tabs { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
-    .admin-tab {
-      padding: 6px 14px; border-radius: 999px; border: 1px solid var(--line);
-      background: var(--paper); cursor: pointer; font-size: 13.5px; color: var(--ink);
-      font-family: var(--font-body);
+    /* ---------- Search + filter toolbar ---------- */
+    .admin-toolbar {
+      display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; align-items: center;
     }
-    .admin-tab.active { background: var(--ba-black); color: #fff; border-color: var(--ba-black); }
+    .admin-toolbar input[type="search"] {
+      flex: 1 1 220px; min-width: 180px; padding: 8px 12px;
+      border: 1px solid var(--line); border-radius: var(--radius-sm);
+      font: inherit; font-family: var(--font-body); background: var(--paper); color: var(--ink);
+    }
+    .admin-toolbar select {
+      padding: 8px 12px; border: 1px solid var(--line); border-radius: var(--radius-sm);
+      font: inherit; font-family: var(--font-body); background: var(--paper); color: var(--ink);
+      cursor: pointer;
+    }
+    .admin-toolbar input[type="search"]:focus, .admin-toolbar select:focus {
+      outline: 2px solid var(--ba-blue); outline-offset: 1px;
+    }
 
     /* ---------- Applicant cards ---------- */
     .app-card {
@@ -160,9 +169,17 @@
     .status-pill { font-size: 12px; padding: 3px 10px; border-radius: 999px; font-weight: 600; white-space: nowrap; }
     .status-submitted { background: #fdf1cf; color: #7a5c00; }
     .status-phone_interview_sent { background: #dceefb; color: #1b5e8a; }
-    .status-zoom_sent { background: #e3d9fb; color: #4a2f8f; }
+    .status-phone_interview_scheduled { background: #bfe0f7; color: #0e3a5f; }
+    .status-zoom_interview_sent { background: #e3d9fb; color: #4a2f8f; }
+    .status-zoom_interview_scheduled { background: #cbb8f7; color: #35205e; }
     .status-hired { background: #d9f3df; color: #1e6b34; }
     .status-not_selected { background: #f3d9d9; color: #8a1b1b; }
+    .app-progress { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+    .progress-chip {
+      font-size: 11px; padding: 3px 9px; border-radius: 999px; font-weight: 600;
+      background: #eef1f4; color: #445;
+    }
+    .progress-chip.scheduled { background: #d9f3df; color: #1e6b34; }
     .app-actions { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
     .app-actions button, .app-actions a.btn-small {
       font-size: 13px; padding: 6px 12px; border-radius: 8px;
@@ -255,11 +272,11 @@
         <div class="kpi-value" id="kpiSubmitted">–</div>
       </div>
       <div class="kpi-tile" style="--tile-accent:#1b5e8a;">
-        <div class="kpi-label"><span class="kpi-dot"></span>Phone interview sent</div>
+        <div class="kpi-label"><span class="kpi-dot"></span>Phone interview</div>
         <div class="kpi-value" id="kpiPhone">–</div>
       </div>
       <div class="kpi-tile" style="--tile-accent:#4a2f8f;">
-        <div class="kpi-label"><span class="kpi-dot"></span>Zoom sent</div>
+        <div class="kpi-label"><span class="kpi-dot"></span>Zoom interview</div>
         <div class="kpi-value" id="kpiZoom">–</div>
       </div>
       <div class="kpi-tile" style="--tile-accent:#1e6b34;">
@@ -272,11 +289,18 @@
       </div>
     </div>
 
-    <div class="admin-tabs" id="filterTabs">
-      <button class="admin-tab active" data-filter="all">All</button>
-      <button class="admin-tab" data-filter="submitted">New</button>
-      <button class="admin-tab" data-filter="phone_interview_sent">Phone interview sent</button>
-      <button class="admin-tab" data-filter="zoom_sent">Zoom sent</button>
+    <div class="admin-toolbar">
+      <input type="search" id="searchInput" placeholder="Search by applicant name…" aria-label="Search applicants by name">
+      <select id="statusFilter" aria-label="Filter by status">
+        <option value="all">All statuses</option>
+        <option value="submitted">New</option>
+        <option value="phone_interview_sent">Phone interview sent</option>
+        <option value="phone_interview_scheduled">Phone interview scheduled</option>
+        <option value="zoom_interview_sent">Zoom interview sent</option>
+        <option value="zoom_interview_scheduled">Zoom interview scheduled</option>
+        <option value="hired">Hired</option>
+        <option value="not_selected">Not selected</option>
+      </select>
     </div>
 
     <div id="errorBanner" class="error-banner"></div>
@@ -295,9 +319,14 @@
       <h3 style="margin:0;">Send phone interview email</h3>
       <label for="phoneSubject">Subject</label>
       <input type="text" id="phoneSubject" required>
+      <label for="phoneSlot1">Offer 3 candidate times</label>
+      <input type="datetime-local" id="phoneSlot1" required>
+      <input type="datetime-local" id="phoneSlot2" required style="margin-top:8px;">
+      <input type="datetime-local" id="phoneSlot3" required style="margin-top:8px;">
+      <p class="hint">The applicant picks one of these 3 times from a link in the email.</p>
       <label for="phoneMessage">Message (optional)</label>
       <textarea id="phoneMessage" rows="4" placeholder="Leave blank to use the default message"></textarea>
-      <p class="hint">The applicant's name and position are added automatically above this message.</p>
+      <p class="hint">The applicant's name, position, and the 3 times above are added automatically.</p>
       <div class="modal-actions">
         <button type="button" id="phoneCancel" class="btn btn-outline">Cancel</button>
         <button type="submit" class="btn btn-gold">Send</button>
@@ -308,10 +337,13 @@
   <dialog id="zoomModal" class="modal">
     <form method="dialog" id="zoomForm">
       <h3 style="margin:0;">Send Zoom interview</h3>
-      <label for="zoomLink">Zoom link</label>
+      <label for="zoomLink">Zoom link <span class="hint" style="display:inline;margin:0;">(same link offered for all 3 times below)</span></label>
       <input type="url" id="zoomLink" required placeholder="https://zoom.us/j/...">
-      <label for="zoomTime">Interview time (optional)</label>
-      <input type="text" id="zoomTime" placeholder="e.g. Thu Aug 27, 2pm ET">
+      <label for="zoomSlot1">Offer 3 candidate times</label>
+      <input type="datetime-local" id="zoomSlot1" required>
+      <input type="datetime-local" id="zoomSlot2" required style="margin-top:8px;">
+      <input type="datetime-local" id="zoomSlot3" required style="margin-top:8px;">
+      <p class="hint">The applicant picks one of these 3 times from a link in the email.</p>
       <label for="zoomMessage">Extra message (optional)</label>
       <textarea id="zoomMessage" rows="3"></textarea>
       <div class="modal-actions">

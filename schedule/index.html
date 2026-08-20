@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Choose your interview time with Our Home.">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="theme-color" content="#0b3550">
+  <title>Choose Your Interview Time — Our Home</title>
+  <link rel="icon" type="image/png" sizes="32x32" href="../assets/images/favicon-32.png">
+  <link rel="apple-touch-icon" href="../assets/images/favicon-192.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../styles.css">
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to main content</a>
+
+  <header class="site-header">
+    <div class="container header-inner">
+      <a class="brand" href="../index.html">
+        <img src="../assets/images/our-home-logo-nav.png" alt="Our Home logo">
+        <span class="brand-text">
+          <span class="full-name">Our Home</span>
+          <span class="sub">Children's Group Home Association</span>
+        </span>
+      </a>
+    </div>
+  </header>
+
+  <main id="main">
+    <section class="page-hero">
+      <div class="container">
+        <span class="eyebrow">Interview Scheduling</span>
+        <h1 id="scheduleTitle">Choose Your Interview Time</h1>
+        <p id="scheduleIntro" class="schedule-loading">Loading your scheduling details…</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container" style="max-width:640px;">
+        <div class="form-card" id="scheduleCard">
+
+          <p id="scheduleError" class="field-error" style="display:none;font-size:0.95rem;"></p>
+
+          <div id="scheduleSlots" style="display:none;">
+            <div id="zoomLinkNote" class="zoom-link-note" style="display:none;margin-bottom:18px;"></div>
+            <div id="slotList" class="slot-list"></div>
+            <div class="form-actions" style="margin-top:22px;">
+              <button type="button" id="confirmSlotBtn" class="btn btn-primary" disabled>Confirm This Time</button>
+            </div>
+          </div>
+
+          <div class="form-success" id="scheduleSuccess">
+            <div class="check" aria-hidden="true">&#10003;</div>
+            <h3 id="scheduleSuccessTitle">You're all set!</h3>
+            <p id="scheduleSuccessDetail"></p>
+            <div class="success-actions">
+              <a class="btn btn-primary" href="../index.html">Return Home</a>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-bottom">
+        <span>&copy; <span data-year></span> Our Home. All rights reserved.</span>
+      </div>
+    </div>
+  </footer>
+
+  <script src="schedule.js"></script>
+  <script>document.querySelectorAll('[data-year]').forEach((el) => { el.textContent = new Date().getFullYear(); });</script>
+</body>
+</html>

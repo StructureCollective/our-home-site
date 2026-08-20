@@ -543,6 +543,31 @@ img { max-width: 100%; display: block; }
 }
 .field.has-error .field-error { display: block; }
 
+/* Interview self-scheduling page (schedule/index.html) */
+.slot-list { display: flex; flex-direction: column; gap: 10px; }
+.slot-option {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+.slot-option:hover { border-color: var(--teal); }
+.slot-option input[type="radio"] { accent-color: var(--teal); width: 18px; height: 18px; flex: none; }
+.slot-option.selected { border-color: var(--teal); background: rgba(14, 124, 147, 0.06); }
+.slot-option .slot-label { font-weight: 600; color: var(--navy); }
+.zoom-link-note {
+  background: var(--cream);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+  font-size: 0.92rem;
+  color: var(--ink);
+}
+.schedule-loading { color: var(--muted); }
+
 /* Applications layout with aside */
 .apply-layout {
   display: grid;

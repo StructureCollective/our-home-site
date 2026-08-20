@@ -119,6 +119,8 @@ export async function insertApplication(env, row, { pdfProvider, pdfKey, pdfUrl 
 const OVERVIEW_COLUMNS = [
   'id', 'full_name', 'email', 'phone', 'position', 'employment_type',
   'status', 'submitted_at', 'phone_interview_sent_at', 'zoom_sent_at',
+  'phone_interview_slots', 'phone_interview_scheduled_at',
+  'zoom_interview_slots', 'zoom_interview_scheduled_at', 'zoom_link',
 ];
 
 export async function listApplications(env) {
@@ -155,5 +157,102 @@ export async function logActivity(env, { applicationId, actor, action, detail })
   await env.DB
     .prepare('INSERT INTO activity_log (application_id, actor, action, detail) VALUES (?, ?, ?, ?)')
     .bind(applicationId, actor || null, action, detail || null)
+    .run();
+}
+
+// ---------------- Interview self-scheduling ----------------
+//
+// Flow: an admin offers 3 candidate times (+ a Zoom link, for the zoom
+// stage) from the dashboard. That's an "offer" (saveInterviewOffer). The
+// applicant follows an emailed link containing a random per-stage token to
+// a public page (getApplicationByToken looks the application up by it),
+// picks one of the 3 times, and that pick is recorded
+// (recordInterviewSchedule), which is what actually confirms the
+// interview and flips status to "*_scheduled".
+
+// Per-stage column/status names, so the offer/lookup/record helpers below
+// don't have to repeat the phone-vs-zoom branching every time.
+const STAGE_CONFIG = {
+  phone: {
+    slotsColumn: 'phone_interview_slots',
+    tokenColumn: 'phone_interview_token',
+    scheduledAtColumn: 'phone_interview_scheduled_at',
+    sentTimestampColumn: 'phone_interview_sent_at',
+    sentStatus: 'phone_interview_sent',
+    scheduledStatus: 'phone_interview_scheduled',
+  },
+  zoom: {
+    slotsColumn: 'zoom_interview_slots',
+    tokenColumn: 'zoom_interview_token',
+    scheduledAtColumn: 'zoom_interview_scheduled_at',
+    // Column name predates the "_interview_" naming convention used
+    // elsewhere; kept as-is to avoid an extra migration/rename.
+    sentTimestampColumn: 'zoom_sent_at',
+    sentStatus: 'zoom_interview_sent',
+    scheduledStatus: 'zoom_interview_scheduled',
+  },
+};
+
+/** Random, unguessable token for a public scheduling link. Not a JWT or
+ *  anything parseable -- just an opaque lookup key. */
+export function randomToken() {
+  return crypto.randomUUID().replace(/-/g, '');
+}
+
+/** Records that an admin offered 3 candidate times for `stage`
+ *  ('phone' | 'zoom'), generates/stores the scheduling token, and moves
+ *  status to the corresponding "*_sent" value. For the zoom stage, also
+ *  stores the single Zoom link that's reused across all 3 offered times. */
+export async function saveInterviewOffer(env, id, { stage, slots, token, zoomLink, actor }) {
+  const cfg = STAGE_CONFIG[stage];
+  if (!cfg) throw new Error(`Unknown interview stage: ${stage}`);
+
+  const setClauses = [
+    `${cfg.slotsColumn} = ?`,
+    `${cfg.tokenColumn} = ?`,
+    `${cfg.sentTimestampColumn} = datetime('now')`,
+    'status = ?',
+    "status_updated_at = datetime('now')",
+    'status_updated_by = ?',
+  ];
+  const values = [JSON.stringify(slots), token, cfg.sentStatus, actor];
+
+  if (stage === 'zoom') {
+    setClauses.push('zoom_link = ?');
+    values.push(zoomLink || null);
+  }
+
+  await env.DB
+    .prepare(`UPDATE applications SET ${setClauses.join(', ')} WHERE id = ?`)
+    .bind(...values, id)
+    .run();
+}
+
+/** Looks an application up by a public scheduling token, checking both the
+ *  phone and zoom token columns. Returns { row, stage } or null. */
+export async function getApplicationByToken(env, token) {
+  if (!token) return null;
+  const row = await env.DB
+    .prepare('SELECT * FROM applications WHERE phone_interview_token = ? OR zoom_interview_token = ?')
+    .bind(token, token)
+    .first();
+  if (!row) return null;
+  const stage = row.phone_interview_token === token ? 'phone' : 'zoom';
+  return { row, stage };
+}
+
+/** Records the applicant's chosen time for `stage` and moves status to the
+ *  corresponding "*_scheduled" value. This -- not the original offer -- is
+ *  what actually confirms the interview. */
+export async function recordInterviewSchedule(env, id, { stage, chosenSlot }) {
+  const cfg = STAGE_CONFIG[stage];
+  if (!cfg) throw new Error(`Unknown interview stage: ${stage}`);
+
+  await env.DB
+    .prepare(
+      `UPDATE applications SET ${cfg.scheduledAtColumn} = ?, status = ?, ` +
+      `status_updated_at = datetime('now'), status_updated_by = 'applicant' WHERE id = ?`
+    )
+    .bind(chosenSlot, cfg.scheduledStatus, id)
     .run();
 }
