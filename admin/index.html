@@ -321,16 +321,11 @@
   <dialog id="phoneModal" class="modal">
     <form method="dialog" id="phoneForm">
       <h3 style="margin:0;">Send phone interview email</h3>
-      <label for="phoneSubject">Subject</label>
-      <input type="text" id="phoneSubject" required>
       <label for="phoneSlot1">Offer 3 candidate times</label>
       <input type="datetime-local" id="phoneSlot1" required>
       <input type="datetime-local" id="phoneSlot2" required style="margin-top:8px;">
       <input type="datetime-local" id="phoneSlot3" required style="margin-top:8px;">
-      <p class="hint">The applicant picks one of these 3 times from a link in the email.</p>
-      <label for="phoneMessage">Message (optional)</label>
-      <textarea id="phoneMessage" rows="4" placeholder="Leave blank to use the default message"></textarea>
-      <p class="hint">The applicant's name, position, and the 3 times above are added automatically.</p>
+      <p class="hint">The applicant picks one of these 3 times from a link in the email. The email itself uses our fixed "Phone Interview Invitation" template -- subject and wording aren't customizable.</p>
       <div class="modal-actions">
         <button type="button" id="phoneCancel" class="btn btn-outline">Cancel</button>
         <button type="submit" class="btn btn-gold">Send</button>
@@ -347,9 +342,7 @@
       <input type="datetime-local" id="zoomSlot1" required>
       <input type="datetime-local" id="zoomSlot2" required style="margin-top:8px;">
       <input type="datetime-local" id="zoomSlot3" required style="margin-top:8px;">
-      <p class="hint">The applicant picks one of these 3 times from a link in the email.</p>
-      <label for="zoomMessage">Extra message (optional)</label>
-      <textarea id="zoomMessage" rows="3"></textarea>
+      <p class="hint">The applicant picks one of these 3 times from a link in the email. The Zoom link above isn't shown to the applicant until they confirm a time -- it appears in their confirmation email. The invite itself uses our fixed "Schedule Your Zoom Interview" template -- subject and wording aren't customizable.</p>
       <div class="modal-actions">
         <button type="button" id="zoomCancel" class="btn btn-outline">Cancel</button>
         <button type="submit" class="btn btn-gold">Send</button>

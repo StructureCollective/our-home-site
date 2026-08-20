@@ -19,8 +19,6 @@ const STATUS_LABEL = {
   not_selected: 'Not selected',
 };
 
-const DEFAULT_PHONE_SUBJECT = 'Our Home -- next steps on your application';
-
 let applications = [];
 let currentFilter = 'all';
 let currentSearch = '';
@@ -148,6 +146,9 @@ function renderProgressChips(app) {
   if (app.phone_interview_scheduled_at) {
     chips.push(`<span class="progress-chip scheduled">Phone interview scheduled — ${formatDate(app.phone_interview_scheduled_at)}</span>`);
   }
+  if (app.phone_interview_resent_at) {
+    chips.push(`<span class="progress-chip">Phone invite resent</span>`);
+  }
   if (app.zoom_sent_at) {
     chips.push(`<span class="progress-chip">Zoom interview sent</span>`);
   }
@@ -164,6 +165,12 @@ function renderCard(app) {
   const statusLabel = STATUS_LABEL[app.status] || app.status;
   const canSendPhone = app.status === 'submitted';
   const canSendZoom = app.status === 'phone_interview_scheduled';
+  const canResendPhone = app.status === 'phone_interview_sent' && !app.phone_interview_resent_at;
+  const resendTitle = app.status !== 'phone_interview_sent'
+    ? 'Available once the phone interview invite has been sent, and before the applicant has scheduled a time'
+    : app.phone_interview_resent_at
+      ? 'This invite has already been resent once'
+      : '';
 
   card.innerHTML = `
     <div class="app-card-top">
@@ -178,12 +185,14 @@ function renderCard(app) {
     <div class="app-actions">
       <a class="btn-small" href="/api/admin/applications/${app.id}/pdf" target="_blank" rel="noopener">Download PDF</a>
       <button data-action="phone" ${canSendPhone ? '' : 'disabled'}>Send phone interview email</button>
+      <button data-action="resend-phone" ${canResendPhone ? '' : 'disabled'} title="${resendTitle}">Resend Phone Invite</button>
       <button data-action="zoom" class="primary" ${canSendZoom ? '' : 'disabled'} title="${canSendZoom ? '' : 'Available once the applicant has confirmed a phone interview time'}">Send Zoom interview</button>
       <button data-action="delete" class="danger" type="button">Delete</button>
     </div>
   `;
 
   card.querySelector('[data-action="phone"]').addEventListener('click', () => openPhoneModal(app));
+  card.querySelector('[data-action="resend-phone"]').addEventListener('click', () => resendPhoneInterview(app));
   card.querySelector('[data-action="zoom"]').addEventListener('click', () => openZoomModal(app));
   card.querySelector('[data-action="delete"]').addEventListener('click', () => openDeleteModal(app));
 
@@ -214,8 +223,6 @@ function slotInputsToIso(ids) {
 
 function openPhoneModal(app) {
   phoneTargetApp = app;
-  document.getElementById('phoneSubject').value = DEFAULT_PHONE_SUBJECT;
-  document.getElementById('phoneMessage').value = '';
   document.getElementById('phoneSlot1').value = '';
   document.getElementById('phoneSlot2').value = '';
   document.getElementById('phoneSlot3').value = '';
@@ -228,8 +235,6 @@ document.getElementById('phoneCancel').addEventListener('click', () => {
 
 document.getElementById('phoneForm').addEventListener('submit', async (e) => {
   e.preventDefault();
-  const subject = document.getElementById('phoneSubject').value.trim();
-  const message = document.getElementById('phoneMessage').value.trim();
   const slots = slotInputsToIso(['phoneSlot1', 'phoneSlot2', 'phoneSlot3']);
   if (!phoneTargetApp) return;
   if (!slots) {
@@ -241,7 +246,7 @@ document.getElementById('phoneForm').addEventListener('submit', async (e) => {
     showError('');
     await api(`/api/admin/applications/${phoneTargetApp.id}/send-phone-interview`, {
       method: 'POST',
-      body: JSON.stringify({ subject, message, slots }),
+      body: JSON.stringify({ slots }),
     });
     document.getElementById('phoneModal').close();
     await loadApplications();
@@ -250,12 +255,32 @@ document.getElementById('phoneForm').addEventListener('submit', async (e) => {
   }
 });
 
+// ---------------- Resend phone interview invite (once only) ----------------
+// Re-sends the ORIGINAL invite -- same 3 offered times, same scheduling
+// link -- for when an applicant says the first email never arrived. The
+// server enforces the "once only" rule; this just asks for confirmation
+// and surfaces whatever error comes back if it's not allowed.
+
+async function resendPhoneInterview(app) {
+  const confirmed = window.confirm(
+    `Resend the phone interview email to ${app.full_name}? This uses the same 3 times already offered, and can only be done once.`
+  );
+  if (!confirmed) return;
+
+  try {
+    showError('');
+    await api(`/api/admin/applications/${app.id}/resend-phone-interview`, { method: 'POST' });
+    await loadApplications();
+  } catch (err) {
+    showError(err.message);
+  }
+}
+
 // ---------------- Zoom interview modal ----------------
 
 function openZoomModal(app) {
   zoomTargetApp = app;
   document.getElementById('zoomLink').value = '';
-  document.getElementById('zoomMessage').value = '';
   document.getElementById('zoomSlot1').value = '';
   document.getElementById('zoomSlot2').value = '';
   document.getElementById('zoomSlot3').value = '';
@@ -269,7 +294,6 @@ document.getElementById('zoomCancel').addEventListener('click', () => {
 document.getElementById('zoomForm').addEventListener('submit', async (e) => {
   e.preventDefault();
   const zoomLink = document.getElementById('zoomLink').value.trim();
-  const message = document.getElementById('zoomMessage').value.trim();
   const slots = slotInputsToIso(['zoomSlot1', 'zoomSlot2', 'zoomSlot3']);
   if (!zoomTargetApp || !zoomLink) return;
   if (!slots) {
@@ -281,7 +305,7 @@ document.getElementById('zoomForm').addEventListener('submit', async (e) => {
     showError('');
     await api(`/api/admin/applications/${zoomTargetApp.id}/send-zoom`, {
       method: 'POST',
-      body: JSON.stringify({ zoomLink, slots, message }),
+      body: JSON.stringify({ zoomLink, slots }),
     });
     document.getElementById('zoomModal').close();
     await loadApplications();

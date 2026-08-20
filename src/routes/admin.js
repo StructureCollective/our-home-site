@@ -13,8 +13,17 @@ import {
   logActivity,
   randomToken,
   saveInterviewOffer,
+  markPhoneInterviewResent,
 } from '../lib/db.js';
-import { sendEmail, phoneInterviewEmail, zoomInterviewEmail } from '../lib/email.js';
+import {
+  sendEmail,
+  phoneInterviewEmail,
+  phoneInterviewReminderEmail,
+  zoomInterviewEmail,
+  PHONE_INTERVIEW_SUBJECT,
+  PHONE_INTERVIEW_REMINDER_SUBJECT,
+  ZOOM_INTERVIEW_SUBJECT,
+} from '../lib/email.js';
 import { generateApplicationPdf } from '../lib/pdf.js';
 
 function json(data, status = 200) {
@@ -77,10 +86,11 @@ export async function handlePdf(request, env, id) {
 
 // POST /api/admin/applications/:id/send-phone-interview
 //
-// Body: { subject?, message?, slots: [iso, iso, iso] } -- exactly 3
-// candidate times the admin is offering. Generates a one-time scheduling
-// token and emails the applicant a link to /schedule/?token=... where they
-// pick one of the 3 (see src/routes/schedule.js).
+// Body: { slots: [iso, iso, iso] } -- exactly 3 candidate times the admin
+// is offering. Generates a one-time scheduling token and emails the
+// applicant a link to /schedule/?token=... where they pick one of the 3
+// (see src/routes/schedule.js). The email itself uses a fixed template --
+// there's no admin-customizable subject or message anymore.
 export async function handleSendPhoneInterview(request, env, id) {
   const { email, response } = requireAdmin(request, env);
   if (!email) return response;
@@ -93,7 +103,6 @@ export async function handleSendPhoneInterview(request, env, id) {
   }
 
   const body = await request.json().catch(() => ({}));
-  const subject = (body.subject && body.subject.trim()) || 'Our Home -- next steps on your application';
   const slots = Array.isArray(body.slots) ? body.slots.filter(Boolean) : [];
   if (slots.length !== 3) {
     return json({ error: 'Please offer exactly 3 candidate interview times.' }, 400);
@@ -105,12 +114,10 @@ export async function handleSendPhoneInterview(request, env, id) {
   try {
     await sendEmail(env, {
       to: application.email,
-      subject,
+      subject: PHONE_INTERVIEW_SUBJECT,
       html: phoneInterviewEmail({
         fullName: application.full_name,
         position: application.position,
-        message: body.message,
-        slots,
         scheduleUrl,
       }),
     });
@@ -123,7 +130,56 @@ export async function handleSendPhoneInterview(request, env, id) {
     applicationId: id,
     actor: email,
     action: 'phone_interview_email_sent',
-    detail: JSON.stringify({ subject, message: body.message || null, slots }),
+    detail: JSON.stringify({ slots }),
+  });
+
+  return json({ success: true });
+}
+
+// POST /api/admin/applications/:id/resend-phone-interview
+//
+// Re-sends the ORIGINAL phone interview invite -- same 3 offered times,
+// same scheduling link -- for when an applicant says it never arrived.
+// Allowed exactly once per applicant, and only while still waiting on
+// them to pick a time (not after they've scheduled or moved on).
+export async function handleResendPhoneInterview(request, env, id) {
+  const { email, response } = requireAdmin(request, env);
+  if (!email) return response;
+
+  const application = await getApplication(env, id);
+  if (!application) return json({ error: 'Not found' }, 404);
+
+  if (application.status !== 'phone_interview_sent') {
+    return json({ error: 'The phone interview invite can only be resent while waiting on the applicant to pick a time.' }, 409);
+  }
+  if (application.phone_interview_resent_at) {
+    return json({ error: 'This invite has already been resent once.' }, 409);
+  }
+  if (!application.phone_interview_token || !application.phone_interview_slots) {
+    return json({ error: 'No scheduling link is on file for this applicant -- try sending a new phone interview invite instead.' }, 409);
+  }
+
+  const scheduleUrl = `${new URL(request.url).origin}/schedule/?token=${application.phone_interview_token}`;
+
+  try {
+    await sendEmail(env, {
+      to: application.email,
+      subject: PHONE_INTERVIEW_REMINDER_SUBJECT,
+      html: phoneInterviewReminderEmail({
+        fullName: application.full_name,
+        position: application.position,
+        scheduleUrl,
+      }),
+    });
+  } catch (err) {
+    return json({ error: `Email failed to send: ${err.message}` }, 502);
+  }
+
+  await markPhoneInterviewResent(env, id);
+  await logActivity(env, {
+    applicationId: id,
+    actor: email,
+    action: 'phone_interview_email_resent',
   });
 
   return json({ success: true });
@@ -131,9 +187,11 @@ export async function handleSendPhoneInterview(request, env, id) {
 
 // POST /api/admin/applications/:id/send-zoom
 //
-// Body: { zoomLink, message?, slots: [iso, iso, iso] } -- one Zoom link
-// reused across all 3 offered times. Only allowed once the applicant has
-// confirmed (not just been offered) a phone interview time.
+// Body: { zoomLink, slots: [iso, iso, iso] } -- one Zoom link reused
+// across all 3 offered times. Only allowed once the applicant has
+// confirmed (not just been offered) a phone interview time. The Zoom
+// link itself isn't shown to the applicant until they confirm a time --
+// this invite email only carries the scheduling link.
 export async function handleSendZoom(request, env, id) {
   const { email, response } = requireAdmin(request, env);
   if (!email) return response;
@@ -161,12 +219,10 @@ export async function handleSendZoom(request, env, id) {
   try {
     await sendEmail(env, {
       to: application.email,
-      subject: 'Our Home -- your video interview details',
+      subject: ZOOM_INTERVIEW_SUBJECT,
       html: zoomInterviewEmail({
         fullName: application.full_name,
-        zoomLink,
-        message: body.message,
-        slots,
+        position: application.position,
         scheduleUrl,
       }),
     });

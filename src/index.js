@@ -9,6 +9,7 @@
 //   DELETE /api/admin/applications/:id                  -- admin, permanently delete
 //   GET  /api/admin/applications/:id/pdf                -- admin, download PDF
 //   POST /api/admin/applications/:id/send-phone-interview
+//   POST /api/admin/applications/:id/resend-phone-interview -- once only
 //   POST /api/admin/applications/:id/send-zoom
 //   POST /api/admin/regenerate-pdfs                     -- admin, re-render all stored PDFs
 //   GET  /api/schedule/:token                            -- public, load offered interview times
@@ -28,6 +29,7 @@ import {
   handleDeleteApplication,
   handlePdf,
   handleSendPhoneInterview,
+  handleResendPhoneInterview,
   handleSendZoom,
   handleRegeneratePdfs,
 } from './routes/admin.js';
@@ -36,6 +38,7 @@ import { handleScheduleGet, handleSchedulePost } from './routes/schedule.js';
 const ADMIN_DETAIL_RE = /^\/api\/admin\/applications\/(\d+)$/;
 const ADMIN_PDF_RE = /^\/api\/admin\/applications\/(\d+)\/pdf$/;
 const ADMIN_PHONE_RE = /^\/api\/admin\/applications\/(\d+)\/send-phone-interview$/;
+const ADMIN_PHONE_RESEND_RE = /^\/api\/admin\/applications\/(\d+)\/resend-phone-interview$/;
 const ADMIN_ZOOM_RE = /^\/api\/admin\/applications\/(\d+)\/send-zoom$/;
 const SCHEDULE_RE = /^\/api\/schedule\/([a-zA-Z0-9]+)$/;
 
@@ -83,6 +86,9 @@ async function routeApi(request, env, pathname) {
   }
   if ((m = pathname.match(ADMIN_PHONE_RE)) && request.method === 'POST') {
     return handleSendPhoneInterview(request, env, Number(m[1]));
+  }
+  if ((m = pathname.match(ADMIN_PHONE_RESEND_RE)) && request.method === 'POST') {
+    return handleResendPhoneInterview(request, env, Number(m[1]));
   }
   if ((m = pathname.match(ADMIN_ZOOM_RE)) && request.method === 'POST') {
     return handleSendZoom(request, env, Number(m[1]));

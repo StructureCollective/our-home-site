@@ -121,7 +121,7 @@ export async function insertApplication(env, row, { pdfProvider, pdfKey, pdfUrl 
 const OVERVIEW_COLUMNS = [
   'id', 'full_name', 'email', 'phone', 'position', 'employment_type',
   'status', 'submitted_at', 'phone_interview_sent_at', 'zoom_sent_at',
-  'phone_interview_slots', 'phone_interview_scheduled_at',
+  'phone_interview_slots', 'phone_interview_scheduled_at', 'phone_interview_resent_at',
   'zoom_interview_slots', 'zoom_interview_scheduled_at', 'zoom_link',
 ];
 
@@ -248,6 +248,16 @@ export async function getApplicationByToken(env, token) {
   if (!row) return null;
   const stage = row.phone_interview_token === token ? 'phone' : 'zoom';
   return { row, stage };
+}
+
+/** Marks that the original phone interview invite email has been resent
+ *  once. Callers are expected to check phone_interview_resent_at is not
+ *  already set before calling this -- it's a one-time-only action. */
+export async function markPhoneInterviewResent(env, id) {
+  await env.DB
+    .prepare("UPDATE applications SET phone_interview_resent_at = datetime('now') WHERE id = ?")
+    .bind(id)
+    .run();
 }
 
 /** Records the applicant's chosen time for `stage` and moves status to the

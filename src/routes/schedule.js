@@ -13,8 +13,11 @@ import {
 } from '../lib/db.js';
 import {
   sendEmail,
-  interviewScheduledApplicantEmail,
+  phoneInterviewConfirmationEmail,
+  zoomInterviewConfirmationEmail,
   interviewScheduledAdminEmail,
+  PHONE_CONFIRMATION_SUBJECT,
+  ZOOM_CONFIRMATION_SUBJECT,
 } from '../lib/email.js';
 
 function json(data, status = 200) {
@@ -85,15 +88,19 @@ export async function handleSchedulePost(request, env, token) {
   try {
     await sendEmail(env, {
       to: row.email,
-      subject: stage === 'zoom'
-        ? 'Our Home -- your video interview is confirmed'
-        : 'Our Home -- your phone interview is confirmed',
-      html: interviewScheduledApplicantEmail({
-        fullName: row.full_name,
-        stage,
-        chosenSlot,
-        zoomLink: stage === 'zoom' ? row.zoom_link : null,
-      }),
+      subject: stage === 'zoom' ? ZOOM_CONFIRMATION_SUBJECT : PHONE_CONFIRMATION_SUBJECT,
+      html: stage === 'zoom'
+        ? zoomInterviewConfirmationEmail({
+            fullName: row.full_name,
+            position: row.position,
+            chosenSlot,
+            zoomLink: row.zoom_link,
+          })
+        : phoneInterviewConfirmationEmail({
+            fullName: row.full_name,
+            position: row.position,
+            chosenSlot,
+          }),
     });
   } catch (err) {
     // The schedule is already recorded -- don't fail the request over a
