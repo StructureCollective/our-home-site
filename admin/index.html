@@ -106,6 +106,12 @@
     }
     .page-title-row h1 { font-size: 1.5rem; color: var(--ba-black); }
     .page-title-row p { margin: 4px 0 0; color: var(--muted); font-size: 0.92rem; }
+    .page-title-tools { text-align: right; }
+    .page-title-tools .hint {
+      margin: 6px 0 0; font-size: 11.5px; color: var(--muted); max-width: 220px;
+    }
+    .page-title-tools .hint.success { color: #1e6b34; }
+    .page-title-tools .hint.error { color: #8a1b1b; }
 
     /* ---------- Dashboard KPI row ---------- */
     .kpi-row {
@@ -232,6 +238,10 @@
       <div>
         <h1>Applicant dashboard</h1>
         <p>Review submitted applications, download completed PDFs, and move candidates through the hiring workflow.</p>
+      </div>
+      <div class="page-title-tools">
+        <button type="button" id="regeneratePdfsBtn" class="btn btn-outline">Regenerate All PDFs</button>
+        <p class="hint" id="regeneratePdfsStatus"></p>
       </div>
     </div>
 

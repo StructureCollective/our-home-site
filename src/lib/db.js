@@ -132,6 +132,13 @@ export async function getApplication(env, id) {
   return env.DB.prepare('SELECT * FROM applications WHERE id = ?').bind(id).first();
 }
 
+// Full rows (every column) for every application -- used by the PDF
+// regeneration tool, which needs the same shape getApplication() returns.
+export async function listAllApplicationsFull(env) {
+  const { results } = await env.DB.prepare('SELECT * FROM applications ORDER BY id ASC').all();
+  return results;
+}
+
 export async function updateStatus(env, id, { status, timestampColumn, actor }) {
   const setClauses = ['status = ?', 'status_updated_at = datetime(\'now\')', 'status_updated_by = ?'];
   const values = [status, actor];

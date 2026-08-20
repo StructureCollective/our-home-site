@@ -7,11 +7,13 @@
 import { requireAdmin } from '../lib/access.js';
 import {
   listApplications,
+  listAllApplicationsFull,
   getApplication,
   updateStatus,
   logActivity,
 } from '../lib/db.js';
 import { sendEmail, phoneInterviewEmail, zoomInterviewEmail } from '../lib/email.js';
+import { generateApplicationPdf } from '../lib/pdf.js';
 
 function json(data, status = 200) {
   return new Response(JSON.stringify(data), {
@@ -160,4 +162,57 @@ export async function handleSendZoom(request, env, id) {
   });
 
   return json({ success: true });
+}
+
+// POST /api/admin/regenerate-pdfs -- one-off / re-runnable maintenance tool.
+// Re-renders every application's PDF with the current template (e.g. after
+// a styling change like the formal letterhead) and overwrites the existing
+// object in R2 at its existing pdf_key, so download links keep working
+// unchanged. Safe to run more than once -- it only ever overwrites, never
+// creates new rows or keys.
+export async function handleRegeneratePdfs(request, env) {
+  const { email, response } = requireAdmin(request, env);
+  if (!email) return response;
+
+  const applications = await listAllApplicationsFull(env);
+
+  let updated = 0;
+  let skipped = 0;
+  const failures = [];
+
+  for (const row of applications) {
+    if (!row.pdf_key) {
+      skipped += 1;
+      continue;
+    }
+    try {
+      const pdfBytes = await generateApplicationPdf(row, { env, request });
+      await env.PDF_BUCKET.put(row.pdf_key, pdfBytes, {
+        httpMetadata: { contentType: 'application/pdf' },
+      });
+      updated += 1;
+    } catch (err) {
+      failures.push({ id: row.id, error: String((err && err.message) || err) });
+    }
+  }
+
+  try {
+    await logActivity(env, {
+      applicationId: null,
+      actor: email,
+      action: 'pdfs_regenerated',
+      detail: JSON.stringify({ updated, skipped, failed: failures.length }),
+    });
+  } catch {
+    // Non-fatal -- don't let an activity-log hiccup mask a successful regenerate.
+  }
+
+  return json({
+    success: true,
+    total: applications.length,
+    updated,
+    skipped,
+    failed: failures.length,
+    failures,
+  });
 }

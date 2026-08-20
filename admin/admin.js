@@ -216,6 +216,45 @@ document.getElementById('zoomForm').addEventListener('submit', async (e) => {
   }
 });
 
+// ---------------- Maintenance: regenerate all stored PDFs ----------------
+// Re-renders every application's PDF with whatever the current template
+// looks like (e.g. after a styling change) and overwrites the existing R2
+// object at its existing key. Safe to click more than once.
+
+const regenerateBtn = document.getElementById('regeneratePdfsBtn');
+const regenerateStatus = document.getElementById('regeneratePdfsStatus');
+
+if (regenerateBtn) {
+  regenerateBtn.addEventListener('click', async () => {
+    const confirmed = window.confirm(
+      'This re-renders and re-saves the PDF for every application on file, using the current PDF template. ' +
+      'It can take a little while if you have many applicants. Continue?'
+    );
+    if (!confirmed) return;
+
+    regenerateBtn.disabled = true;
+    regenerateStatus.className = 'hint';
+    regenerateStatus.textContent = 'Regenerating PDFs… this may take a moment.';
+
+    try {
+      const data = await api('/api/admin/regenerate-pdfs', { method: 'POST' });
+      const parts = [`Updated ${data.updated} of ${data.total}.`];
+      if (data.skipped) parts.push(`${data.skipped} skipped (no PDF on file).`);
+      if (data.failed) parts.push(`${data.failed} failed.`);
+      regenerateStatus.className = data.failed ? 'hint error' : 'hint success';
+      regenerateStatus.textContent = parts.join(' ');
+      if (data.failed) {
+        console.error('PDF regeneration failures:', data.failures);
+      }
+    } catch (err) {
+      regenerateStatus.className = 'hint error';
+      regenerateStatus.textContent = err.message;
+    } finally {
+      regenerateBtn.disabled = false;
+    }
+  });
+}
+
 // ---------------- Filters + load ----------------
 
 filterTabs.addEventListener('click', (e) => {

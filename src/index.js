@@ -9,6 +9,7 @@
 //   GET  /api/admin/applications/:id/pdf                -- admin, download PDF
 //   POST /api/admin/applications/:id/send-phone-interview
 //   POST /api/admin/applications/:id/send-zoom
+//   POST /api/admin/regenerate-pdfs                     -- admin, re-render all stored PDFs
 //
 // /admin* and /api/admin* are protected at the edge by a Cloudflare Access
 // application (see src/lib/access.js for the defense-in-depth check on our
@@ -22,6 +23,7 @@ import {
   handlePdf,
   handleSendPhoneInterview,
   handleSendZoom,
+  handleRegeneratePdfs,
 } from './routes/admin.js';
 
 const ADMIN_DETAIL_RE = /^\/api\/admin\/applications\/(\d+)$/;
@@ -61,6 +63,10 @@ async function routeApi(request, env, pathname) {
 
   if (pathname === '/api/admin/applications' && request.method === 'GET') {
     return handleList(request, env);
+  }
+
+  if (pathname === '/api/admin/regenerate-pdfs' && request.method === 'POST') {
+    return handleRegeneratePdfs(request, env);
   }
 
   let m;
