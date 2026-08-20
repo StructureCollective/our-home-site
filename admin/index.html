@@ -28,6 +28,9 @@
       --ba-black-soft: #221f1a;
       --ba-gold: #a9822f;
       --ba-gold-light: #c9a752;
+      --ba-blue: #1c5f96;
+      --ba-blue-dark: #0e3a5f;
+      --ba-blue-light: #eaf3fb;
 
       --paper: #ffffff;
       --cream: #f8f6ef;
@@ -52,9 +55,9 @@
 
     /* ---------- Header ---------- */
     .admin-header {
-      background: var(--ba-black);
-      color: #f3f1ec;
-      border-bottom: 3px solid var(--ba-gold);
+      background: var(--paper);
+      color: var(--ink);
+      border-bottom: 3px solid var(--ba-blue);
     }
     .admin-header-inner {
       display: flex;
@@ -71,31 +74,31 @@
       align-items: center;
       gap: 8px;
       padding-left: 16px;
-      border-left: 1px solid rgba(243, 241, 236, 0.25);
+      border-left: 1px solid var(--line);
     }
     .sub-brand img { height: 24px; width: auto; display: block; }
     .sub-brand-text { line-height: 1.15; }
-    .sub-brand-text .label { font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ba-gold-light); display: block; }
-    .sub-brand-text .name { font-family: var(--font-head); font-weight: 700; font-size: 14px; color: #fff; }
+    .sub-brand-text .label { font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ba-blue); display: block; }
+    .sub-brand-text .name { font-family: var(--font-head); font-weight: 700; font-size: 14px; color: var(--ba-black); }
 
-    .session-block { display: flex; align-items: center; gap: 16px; font-size: 13px; color: #cfcabf; }
+    .session-block { display: flex; align-items: center; gap: 16px; font-size: 13px; color: var(--muted); }
     .session-block .who { text-align: right; }
-    .session-block .who .email { display: block; color: #fff; font-weight: 600; }
-    .session-block .who .clock { display: block; font-variant-numeric: tabular-nums; color: #a8a297; font-size: 12px; margin-top: 1px; }
+    .session-block .who .email { display: block; color: var(--ink); font-weight: 600; }
+    .session-block .who .clock { display: block; font-variant-numeric: tabular-nums; color: var(--muted); font-size: 12px; margin-top: 1px; }
     .session-block .avatar {
       width: 34px; height: 34px; border-radius: 50%;
-      background: var(--ba-gold);
-      color: var(--ba-black);
+      background: var(--ba-blue);
+      color: #fff;
       display: flex; align-items: center; justify-content: center;
       font-family: var(--font-head); font-weight: 700; font-size: 14px;
       flex-shrink: 0;
     }
     .session-block a.signout {
-      font-size: 12px; color: var(--ba-gold-light); text-decoration: none;
-      border: 1px solid rgba(169, 130, 47, 0.5); border-radius: 999px;
+      font-size: 12px; color: var(--ba-blue); text-decoration: none;
+      border: 1px solid var(--ba-blue); border-radius: 999px;
       padding: 5px 12px; white-space: nowrap;
     }
-    .session-block a.signout:hover { background: rgba(169, 130, 47, 0.15); }
+    .session-block a.signout:hover { background: var(--ba-blue-light); }
 
     .page-title-row {
       display: flex; align-items: baseline; justify-content: space-between;
