@@ -4,22 +4,150 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="robots" content="noindex, nofollow">
-  <title>Our Home — Admin</title>
+  <title>Applicant Admin — Our Home</title>
   <link rel="icon" type="image/png" sizes="32x32" href="../assets/images/favicon-32.png">
-  <link rel="stylesheet" href="../styles.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
-    /* Admin-only layout. Deliberately separate from styles.css so changes
-       here can't affect the public site. */
-    .admin-shell { max-width: 1000px; margin: 0 auto; padding: 32px 20px 80px; }
-    .admin-header { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; margin-bottom: 24px; flex-wrap: wrap; }
-    .admin-header h1 { margin: 0; }
-    .admin-tabs { display: flex; gap: 8px; margin-bottom: 20px; }
-    .admin-tab { padding: 6px 14px; border-radius: 999px; border: 1px solid #d8d8d8; background: #fff; cursor: pointer; font-size: 14px; }
-    .admin-tab.active { background: #0b3550; color: #fff; border-color: #0b3550; }
-    .app-card { border: 1px solid #e2e2e2; border-radius: 12px; padding: 16px 18px; margin-bottom: 14px; background: #fff; }
+    /* Admin-only styles. Deliberately self-contained (no dependency on the
+       public site's styles.css) so this page's look is controlled entirely
+       here and can't drift when the marketing site changes. */
+    :root {
+      --font-head: "Poppins", "Segoe UI", sans-serif;
+      --font-body: "Inter", "Segoe UI", sans-serif;
+
+      /* Our Home brand (secondary, "program" identity on this page) */
+      --oh-teal: #0e7c93;
+      --oh-navy: #0b3550;
+      --oh-green: #4b8f2a;
+      --oh-gold: #f0b429;
+
+      /* Black & Associates brand (primary identity for this internal tool) */
+      --ba-black: #14120f;
+      --ba-black-soft: #221f1a;
+      --ba-gold: #a9822f;
+      --ba-gold-light: #c9a752;
+
+      --paper: #ffffff;
+      --cream: #f8f6ef;
+      --ink: #20242a;
+      --muted: #5c6570;
+      --line: #e7e2d6;
+      --radius: 14px;
+      --radius-sm: 9px;
+      --shadow-sm: 0 4px 14px rgba(20, 18, 15, 0.07);
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: var(--font-body);
+      color: var(--ink);
+      background: var(--cream);
+    }
+    h1, h2, h3 { font-family: var(--font-head); margin: 0; }
+    a { color: inherit; }
+    .container { max-width: 1080px; margin: 0 auto; padding: 0 24px; }
+
+    /* ---------- Header ---------- */
+    .admin-header {
+      background: var(--ba-black);
+      color: #f3f1ec;
+      border-bottom: 3px solid var(--ba-gold);
+    }
+    .admin-header-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      padding: 14px 0;
+      flex-wrap: wrap;
+    }
+    .brand-block { display: flex; align-items: center; gap: 18px; }
+    .brand-block img.ba-logo { height: 46px; width: auto; display: block; }
+    .sub-brand {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding-left: 16px;
+      border-left: 1px solid rgba(243, 241, 236, 0.25);
+    }
+    .sub-brand img { height: 24px; width: auto; display: block; }
+    .sub-brand-text { line-height: 1.15; }
+    .sub-brand-text .label { font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ba-gold-light); display: block; }
+    .sub-brand-text .name { font-family: var(--font-head); font-weight: 700; font-size: 14px; color: #fff; }
+
+    .session-block { display: flex; align-items: center; gap: 16px; font-size: 13px; color: #cfcabf; }
+    .session-block .who { text-align: right; }
+    .session-block .who .email { display: block; color: #fff; font-weight: 600; }
+    .session-block .who .clock { display: block; font-variant-numeric: tabular-nums; color: #a8a297; font-size: 12px; margin-top: 1px; }
+    .session-block .avatar {
+      width: 34px; height: 34px; border-radius: 50%;
+      background: var(--ba-gold);
+      color: var(--ba-black);
+      display: flex; align-items: center; justify-content: center;
+      font-family: var(--font-head); font-weight: 700; font-size: 14px;
+      flex-shrink: 0;
+    }
+    .session-block a.signout {
+      font-size: 12px; color: var(--ba-gold-light); text-decoration: none;
+      border: 1px solid rgba(169, 130, 47, 0.5); border-radius: 999px;
+      padding: 5px 12px; white-space: nowrap;
+    }
+    .session-block a.signout:hover { background: rgba(169, 130, 47, 0.15); }
+
+    .page-title-row {
+      display: flex; align-items: baseline; justify-content: space-between;
+      gap: 16px; flex-wrap: wrap; margin: 28px 0 18px;
+    }
+    .page-title-row h1 { font-size: 1.5rem; color: var(--ba-black); }
+    .page-title-row p { margin: 4px 0 0; color: var(--muted); font-size: 0.92rem; }
+
+    /* ---------- Dashboard KPI row ---------- */
+    .kpi-row {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 12px;
+      margin-bottom: 26px;
+    }
+    .kpi-tile {
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-sm);
+      padding: 14px 14px 12px;
+      box-shadow: var(--shadow-sm);
+      border-top: 3px solid var(--tile-accent, var(--ba-gold));
+    }
+    .kpi-tile .kpi-label {
+      font-size: 11.5px; color: var(--muted); font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.04em;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .kpi-tile .kpi-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--tile-accent, var(--ba-gold)); flex-shrink: 0; }
+    .kpi-tile .kpi-value {
+      font-family: var(--font-head); font-weight: 700; font-size: 28px;
+      color: var(--ink); margin-top: 4px;
+    }
+
+    /* ---------- Filters ---------- */
+    .admin-tabs { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
+    .admin-tab {
+      padding: 6px 14px; border-radius: 999px; border: 1px solid var(--line);
+      background: var(--paper); cursor: pointer; font-size: 13.5px; color: var(--ink);
+      font-family: var(--font-body);
+    }
+    .admin-tab.active { background: var(--ba-black); color: #fff; border-color: var(--ba-black); }
+
+    /* ---------- Applicant cards ---------- */
+    .app-card {
+      border: 1px solid var(--line); border-radius: var(--radius);
+      padding: 16px 18px; margin-bottom: 14px; background: var(--paper);
+      box-shadow: var(--shadow-sm);
+    }
     .app-card-top { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; align-items: center; }
-    .app-name { font-weight: 700; font-size: 16px; }
-    .app-meta { color: #666; font-size: 13px; margin-top: 2px; }
+    .app-name { font-weight: 700; font-size: 16px; font-family: var(--font-head); }
+    .app-meta { color: var(--muted); font-size: 13px; margin-top: 2px; }
     .status-pill { font-size: 12px; padding: 3px 10px; border-radius: 999px; font-weight: 600; white-space: nowrap; }
     .status-submitted { background: #fdf1cf; color: #7a5c00; }
     .status-phone_interview_sent { background: #dceefb; color: #1b5e8a; }
@@ -27,23 +155,108 @@
     .status-hired { background: #d9f3df; color: #1e6b34; }
     .status-not_selected { background: #f3d9d9; color: #8a1b1b; }
     .app-actions { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
-    .app-actions button, .app-actions a.btn-small { font-size: 13px; padding: 6px 12px; border-radius: 8px; border: 1px solid #0b3550; background: #fff; color: #0b3550; cursor: pointer; text-decoration: none; }
-    .app-actions button.primary { background: #0b3550; color: #fff; }
-    .app-actions button:disabled { opacity: 0.45; cursor: not-allowed; }
-    .empty-state { color: #666; padding: 40px 0; text-align: center; }
+    .app-actions button, .app-actions a.btn-small {
+      font-size: 13px; padding: 6px 12px; border-radius: 8px;
+      border: 1px solid var(--ba-black); background: var(--paper); color: var(--ba-black);
+      cursor: pointer; text-decoration: none; font-family: var(--font-body);
+    }
+    .app-actions button.primary { background: var(--ba-black); color: #fff; border-color: var(--ba-black); }
+    .app-actions button:disabled { opacity: 0.4; cursor: not-allowed; }
+    .empty-state { color: var(--muted); padding: 40px 0; text-align: center; }
     .error-banner { background: #f3d9d9; color: #8a1b1b; padding: 10px 14px; border-radius: 8px; margin-bottom: 16px; display: none; }
-    dialog.modal { border: none; border-radius: 12px; padding: 24px; max-width: 440px; width: 90%; }
-    dialog.modal::backdrop { background: rgba(0,0,0,0.4); }
+
+    /* ---------- Modals ---------- */
+    dialog.modal { border: none; border-radius: 12px; padding: 24px; max-width: 460px; width: 90%; font-family: var(--font-body); }
+    dialog.modal::backdrop { background: rgba(20, 18, 15, 0.5); }
+    dialog.modal h3 { font-family: var(--font-head); }
     dialog.modal label { display: block; font-size: 13px; font-weight: 600; margin: 12px 0 4px; }
-    dialog.modal input, dialog.modal textarea { width: 100%; padding: 8px 10px; border: 1px solid #ccc; border-radius: 6px; font: inherit; }
+    dialog.modal input, dialog.modal textarea {
+      width: 100%; padding: 8px 10px; border: 1px solid #ccc; border-radius: 6px;
+      font: inherit; font-family: var(--font-body);
+    }
+    dialog.modal .hint { font-size: 11.5px; color: var(--muted); margin-top: 3px; }
     dialog.modal .modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 18px; }
+    .btn { display: inline-block; padding: 8px 16px; border-radius: 8px; font-size: 13.5px; font-weight: 600; cursor: pointer; border: 1px solid transparent; }
+    .btn-outline { background: #fff; border-color: #ccc; color: var(--ink); }
+    .btn-gold { background: var(--ba-gold); border-color: var(--ba-gold); color: #fff; }
+
+    /* ---------- Footer ---------- */
+    .admin-footer {
+      margin-top: 40px; padding: 20px 0 40px; border-top: 1px solid var(--line);
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      color: var(--muted); font-size: 12.5px;
+    }
+    .admin-footer img { height: 16px; width: auto; opacity: 0.85; }
+    .admin-footer a { display: flex; align-items: center; gap: 6px; text-decoration: none; color: var(--muted); }
+    .admin-footer a:hover { color: var(--ink); }
+
+    @media (max-width: 860px) {
+      .kpi-row { grid-template-columns: repeat(3, 1fr); }
+    }
+    @media (max-width: 560px) {
+      .kpi-row { grid-template-columns: repeat(2, 1fr); }
+      .sub-brand { padding-left: 0; border-left: none; }
+      .brand-block { flex-wrap: wrap; row-gap: 8px; }
+    }
   </style>
 </head>
 <body>
-  <div class="admin-shell">
-    <div class="admin-header">
-      <h1>Applicants</h1>
-      <span id="whoami" class="app-meta"></span>
+  <header class="admin-header">
+    <div class="container admin-header-inner">
+      <div class="brand-block">
+        <img class="ba-logo" src="../assets/images/ba-logo-full.png" alt="Black &amp; Associates Global, Inc.">
+        <div class="sub-brand">
+          <img src="../assets/images/our-home-logo-nav.png" alt="Our Home">
+          <span class="sub-brand-text">
+            <span class="label">Program</span>
+            <span class="name">Our Home — Applicant Admin</span>
+          </span>
+        </div>
+      </div>
+      <div class="session-block">
+        <div class="avatar" id="whoAvatar">–</div>
+        <div class="who">
+          <span class="email" id="whoEmail">Signed in</span>
+          <span class="clock" id="whoClock"></span>
+        </div>
+        <a class="signout" href="/cdn-cgi/access/logout">Sign out</a>
+      </div>
+    </div>
+  </header>
+
+  <div class="container">
+    <div class="page-title-row">
+      <div>
+        <h1>Applicant dashboard</h1>
+        <p>Review submitted applications, download completed PDFs, and move candidates through the hiring workflow.</p>
+      </div>
+    </div>
+
+    <div class="kpi-row" id="kpiRow">
+      <div class="kpi-tile" style="--tile-accent:#0b3550;">
+        <div class="kpi-label"><span class="kpi-dot"></span>Total applicants</div>
+        <div class="kpi-value" id="kpiTotal">–</div>
+      </div>
+      <div class="kpi-tile" style="--tile-accent:#c98e14;">
+        <div class="kpi-label"><span class="kpi-dot"></span>New</div>
+        <div class="kpi-value" id="kpiSubmitted">–</div>
+      </div>
+      <div class="kpi-tile" style="--tile-accent:#1b5e8a;">
+        <div class="kpi-label"><span class="kpi-dot"></span>Phone interview sent</div>
+        <div class="kpi-value" id="kpiPhone">–</div>
+      </div>
+      <div class="kpi-tile" style="--tile-accent:#4a2f8f;">
+        <div class="kpi-label"><span class="kpi-dot"></span>Zoom sent</div>
+        <div class="kpi-value" id="kpiZoom">–</div>
+      </div>
+      <div class="kpi-tile" style="--tile-accent:#1e6b34;">
+        <div class="kpi-label"><span class="kpi-dot"></span>Hired</div>
+        <div class="kpi-value" id="kpiHired">–</div>
+      </div>
+      <div class="kpi-tile" style="--tile-accent:#8a1b1b;">
+        <div class="kpi-label"><span class="kpi-dot"></span>Not selected</div>
+        <div class="kpi-value" id="kpiNotSelected">–</div>
+      </div>
     </div>
 
     <div class="admin-tabs" id="filterTabs">
@@ -55,7 +268,29 @@
 
     <div id="errorBanner" class="error-banner"></div>
     <div id="list"><p class="empty-state">Loading applicants…</p></div>
+
+    <div class="admin-footer">
+      <a href="https://structurecollective.com" target="_blank" rel="noopener">
+        <img src="../assets/images/sc-logo.png" alt="">
+        Built by Structure Collective
+      </a>
+    </div>
   </div>
+
+  <dialog id="phoneModal" class="modal">
+    <form method="dialog" id="phoneForm">
+      <h3 style="margin:0;">Send phone interview email</h3>
+      <label for="phoneSubject">Subject</label>
+      <input type="text" id="phoneSubject" required>
+      <label for="phoneMessage">Message (optional)</label>
+      <textarea id="phoneMessage" rows="4" placeholder="Leave blank to use the default message"></textarea>
+      <p class="hint">The applicant's name and position are added automatically above this message.</p>
+      <div class="modal-actions">
+        <button type="button" id="phoneCancel" class="btn btn-outline">Cancel</button>
+        <button type="submit" class="btn btn-gold">Send</button>
+      </div>
+    </form>
+  </dialog>
 
   <dialog id="zoomModal" class="modal">
     <form method="dialog" id="zoomForm">

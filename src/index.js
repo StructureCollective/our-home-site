@@ -3,6 +3,7 @@
 // Serves the static site as before via the ASSETS binding, and handles
 // /api/* for the job application flow:
 //   POST /api/apply                                   -- public, form submission
+//   GET  /api/admin/me                                  -- admin, who's logged in
 //   GET  /api/admin/applications                       -- admin, list
 //   GET  /api/admin/applications/:id                   -- admin, detail
 //   GET  /api/admin/applications/:id/pdf                -- admin, download PDF
@@ -15,6 +16,7 @@
 
 import { handleApply } from './routes/apply.js';
 import {
+  handleMe,
   handleList,
   handleDetail,
   handlePdf,
@@ -51,6 +53,10 @@ export default {
 async function routeApi(request, env, pathname) {
   if (pathname === '/api/apply') {
     return handleApply(request, env);
+  }
+
+  if (pathname === '/api/admin/me' && request.method === 'GET') {
+    return handleMe(request, env);
   }
 
   if (pathname === '/api/admin/applications' && request.method === 'GET') {

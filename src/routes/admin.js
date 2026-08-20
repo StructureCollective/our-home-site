@@ -20,6 +20,13 @@ function json(data, status = 200) {
   });
 }
 
+// GET /api/admin/me -- lets the admin UI show who's logged in.
+export async function handleMe(request, env) {
+  const { email, response } = requireAdmin(request, env);
+  if (!email) return response;
+  return json({ email });
+}
+
 // GET /api/admin/applications
 export async function handleList(request, env) {
   const { email, response } = requireAdmin(request, env);
@@ -77,11 +84,12 @@ export async function handleSendPhoneInterview(request, env, id) {
   }
 
   const body = await request.json().catch(() => ({}));
+  const subject = (body.subject && body.subject.trim()) || 'Our Home -- next steps on your application';
 
   try {
     await sendEmail(env, {
       to: application.email,
-      subject: 'Our Home -- next steps on your application',
+      subject,
       html: phoneInterviewEmail({
         fullName: application.full_name,
         position: application.position,
@@ -101,7 +109,7 @@ export async function handleSendPhoneInterview(request, env, id) {
     applicationId: id,
     actor: email,
     action: 'phone_interview_email_sent',
-    detail: body.message || null,
+    detail: JSON.stringify({ subject, message: body.message || null }),
   });
 
   return json({ success: true });
